@@ -8,12 +8,22 @@ import net.runelite.client.config.ConfigItem;
 public interface SkullTimerConfig extends Config
 {
 	@ConfigItem(
-		keyName = "greeting",
-		name = "Welcome Greeting",
-		description = "The message to show to the user when they login"
+		keyName = "emblemTimer",
+		name = "Emblem Trader Timer",
+		description = "Enables/disables the timer when receiving a skull from the emblem trader."
 	)
-	default String greeting()
+	default boolean ETCheck()
 	{
-		return "Hello";
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "pvpTimer",
+		name = "PVP Timer",
+		description = "Enables/disables the timer when receiving a skull PVP."
+	)
+	default boolean PKCheck()
+	{
+		return true;
 	}
 }

@@ -9,12 +9,10 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ItemID;
-import net.runelite.api.Player;
-import net.runelite.api.coords.WorldArea;
+import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -39,21 +37,36 @@ public class SkullTimerPlugin extends Plugin
 
 	private SkulledTimer timer;
 	private final Duration durationTrader = Duration.ofMinutes(20);
-	private final Duration durationPlayer = Duration.ofMinutes(30);
-	private String lastAttackedPlayer = "";
 
 	@Override
 	protected void shutDown() throws Exception
 	{
+		config.skullDuration(timer.getDuration());
 		removeTimer();
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChangedEvent)
+	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
 	{
-		if (gameStateChangedEvent.getGameState().equals(GameState.LOGGED_IN) && client.getLocalPlayer().getSkullIcon() != null)
+		//logging in - create timer
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Skull Timer] Cannot determine skull duration left. Please re-skull to enable timer.", null);
+			if (config.skullDuration() != null){
+				addTimer(config.skullDuration());
+			}
+		}
+		//connection lost - stop timer
+		else if (gameStateChanged.getGameState() == GameState.CONNECTION_LOST && timer != null)
+		{
+			config.skullDuration(getDuration(Instant.now(), timer.getEndTime()));
+			removeTimer();
+		}
+
+		//if the player is hopping - stop timer
+		else if (gameStateChanged.getGameState() == GameState.HOPPING && timer != null)
+		{
+			config.skullDuration(getDuration(Instant.now(), timer.getEndTime()));
+			removeTimer();
 		}
 	}
 
@@ -61,34 +74,15 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage messageEvent)
 	{
-		if (messageEvent.getType() != ChatMessageType.MESBOX || !config.ETCheck())
+		if (messageEvent.getType() != ChatMessageType.MESBOX)
 		{
 			return;
 		}
+
 		if (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
 		messageEvent.getMessage().equalsIgnoreCase("You are now skulled."))
 		{
 			addTimer(durationTrader);
-		}
-	}
-
-	//if the player attacks another player
-	@Subscribe
-	public void onHitsplatApplied(HitsplatApplied hitsplatAppliedEvent)
-	{
-		if (!config.PKCheck())
-		{
-			return;
-		}
-
-		if (hitsplatAppliedEvent.getActor() instanceof Player && !hitsplatAppliedEvent.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName()) &&
-			client.getLocalPlayer().getSkullIcon() != null)
-		{
-			if (!lastAttackedPlayer.equalsIgnoreCase(hitsplatAppliedEvent.getActor().getName()))
-			{
-				addTimer(durationPlayer);
-				lastAttackedPlayer = hitsplatAppliedEvent.getActor().getName();
-			}
 		}
 	}
 
@@ -102,6 +96,7 @@ public class SkullTimerPlugin extends Plugin
 		if (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == null)
 		{
 			removeTimer();
+			config.skullDuration(null);
 		}
 	}
 
@@ -117,9 +112,14 @@ public class SkullTimerPlugin extends Plugin
 	public void removeTimer()
 	{
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
+		timer = null;
 	}
 
-
+	public Duration getDuration(Instant start, Instant end)
+	{
+		Duration duration = Duration.between(start, end);
+		return duration;
+	}
 
 	@Provides
 	SkullTimerConfig provideConfig(ConfigManager configManager)

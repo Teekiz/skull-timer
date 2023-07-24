@@ -1,5 +1,7 @@
 package com.skulltimer;
 
+import java.time.Duration;
+import java.time.Instant;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -26,4 +28,19 @@ public interface SkullTimerConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "skullDuration",
+		name = "",
+		description = "",
+		hidden = true
+	)
+	Duration skullDuration();
+
+	@ConfigItem(
+		keyName = "skullDuration",
+		name = "",
+		description = ""
+	)
+	void skullDuration(Duration skullDuration);
 }

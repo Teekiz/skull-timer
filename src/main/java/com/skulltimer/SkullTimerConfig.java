@@ -1,7 +1,7 @@
 package com.skulltimer;
 
+import java.awt.Color;
 import java.time.Duration;
-import java.time.Instant;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -10,24 +10,18 @@ import net.runelite.client.config.ConfigItem;
 public interface SkullTimerConfig extends Config
 {
 	@ConfigItem(
-		keyName = "emblemTimer",
-		name = "Emblem Trader Timer",
-		description = "Enables/disables the timer when receiving a skull from the emblem trader."
+		keyName = "textColour",
+		name="Text Colour",
+		description = "The colour of the countdown text displayed on the timer."
 	)
-	default boolean ETCheck()
-	{
-		return true;
-	}
+	default Color textColour() {return Color.WHITE;}
 
 	@ConfigItem(
-		keyName = "pvpTimer",
-		name = "PVP Timer",
-		description = "Enables/disables the timer when receiving a skull PVP."
+		keyName = "warningTextColour",
+		name="Warning Text Colour",
+		description = "The colour of the countdown text displayed on the timer when 30 seconds or less is left on the timer."
 	)
-	default boolean PKCheck()
-	{
-		return true;
-	}
+	default Color warningTextColour() {return Color.RED;}
 
 	@ConfigItem(
 		keyName = "skullDuration",

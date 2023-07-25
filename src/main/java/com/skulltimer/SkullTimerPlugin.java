@@ -9,12 +9,12 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ItemID;
-import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -41,8 +41,8 @@ public class SkullTimerPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
-		config.skullDuration(timer.getDuration());
-		removeTimer();
+		//save the timer when shutting down if it exists
+		removeTimer(timer != null);
 	}
 
 	@Subscribe
@@ -51,26 +51,19 @@ public class SkullTimerPlugin extends Plugin
 		//logging in - create timer
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			if (config.skullDuration() != null){
+			if (config.skullDuration() != null && timer == null){
 				addTimer(config.skullDuration());
 			}
 		}
-		//connection lost - stop timer
-		else if (gameStateChanged.getGameState() == GameState.CONNECTION_LOST && timer != null)
-		{
-			config.skullDuration(getDuration(Instant.now(), timer.getEndTime()));
-			removeTimer();
-		}
 
-		//if the player is hopping - stop timer
-		else if (gameStateChanged.getGameState() == GameState.HOPPING && timer != null)
+		//logged out or hopping - stop timer
+		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timer != null)
 		{
-			config.skullDuration(getDuration(Instant.now(), timer.getEndTime()));
-			removeTimer();
+			removeTimer(true);
 		}
 	}
 
-	//if the player talks to the emblem trader.
+	//if the player talks to the emblem trader they will receive this message.
 	@Subscribe
 	public void onChatMessage(ChatMessage messageEvent)
 	{
@@ -95,30 +88,31 @@ public class SkullTimerPlugin extends Plugin
 		//if the player does not have a skull icon or the timer has expired
 		if (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == null)
 		{
-			removeTimer();
-			config.skullDuration(null);
+			removeTimer(false);
 		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (timer != null) {addTimer(timer.getRemainingTime());}
 	}
 
 	public void addTimer(Duration timerDuration)
 	{
 		//removes the timer if a timer is already created.
-		removeTimer();
-		timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this);
+		removeTimer(timer != null);
+		timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this, config.textColour(), config.warningTextColour());
 		timer.setTooltip("Time left until your character becomes unskulled.");
 		infoBoxManager.addInfoBox(timer);
 	}
 
-	public void removeTimer()
+	public void removeTimer(boolean saveConfig)
 	{
+		if (saveConfig) {config.skullDuration(timer.getRemainingTime());}
+		else {config.skullDuration(null);}
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
 		timer = null;
-	}
-
-	public Duration getDuration(Instant start, Instant end)
-	{
-		Duration duration = Duration.between(start, end);
-		return duration;
 	}
 
 	@Provides

@@ -1,27 +1,26 @@
 /*
-* Copyright (c) 2023, Callum Rossiter
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2023, Callum Rossiter
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.skulltimer;
 
 import com.google.inject.Provides;
@@ -59,7 +58,6 @@ public class SkullTimerPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
-
 	private SkulledTimer timer;
 	private final Duration durationTrader = Duration.ofMinutes(20);
 
@@ -74,13 +72,10 @@ public class SkullTimerPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
 	{
 		//logging in - create timer
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN && config.skullDuration() != null && timer == null)
 		{
-			if (config.skullDuration() != null && timer == null){
-				addTimer(config.skullDuration());
-			}
+			addTimer(config.skullDuration());
 		}
-
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timer != null)
 		{
@@ -92,13 +87,9 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage messageEvent)
 	{
-		if (messageEvent.getType() != ChatMessageType.MESBOX)
-		{
-			return;
-		}
-
-		if (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
-		messageEvent.getMessage().equalsIgnoreCase("You are now skulled."))
+		//check the message type and content
+		if (messageEvent.getType() == ChatMessageType.MESBOX && (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
+		messageEvent.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
 			addTimer(durationTrader);
 		}
@@ -108,10 +99,8 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTickEvent)
 	{
-		if (timer == null) {return;}
-
 		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == null)
+		if (timer != null && (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == null))
 		{
 			removeTimer(false);
 		}
@@ -123,7 +112,7 @@ public class SkullTimerPlugin extends Plugin
 		if (timer != null) {addTimer(timer.getRemainingTime());}
 	}
 
-	public void addTimer(Duration timerDuration)
+	public void addTimer(Duration timerDuration) throws IllegalArgumentException
 	{
 		//removes the timer if a timer is already created.
 		removeTimer(timer != null);
@@ -132,10 +121,11 @@ public class SkullTimerPlugin extends Plugin
 		infoBoxManager.addInfoBox(timer);
 	}
 
-	public void removeTimer(boolean saveConfig)
+	public void removeTimer(boolean saveConfig) throws IllegalArgumentException
 	{
 		if (saveConfig) {config.skullDuration(timer.getRemainingTime());}
 		else {config.skullDuration(null);}
+
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
 		timer = null;
 	}

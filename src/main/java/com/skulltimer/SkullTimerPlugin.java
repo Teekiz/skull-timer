@@ -22,7 +22,8 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Skull Timer"
+	name = "Emblem Trader Skull Timer",
+	description = "Displays a timer when your character receives a skull from the emblem trader."
 )
 public class SkullTimerPlugin extends Plugin
 {

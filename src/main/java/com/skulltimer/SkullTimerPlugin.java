@@ -32,6 +32,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ItemID;
+import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -75,10 +76,12 @@ public class SkullTimerPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN && config.skullDuration() != null && timer == null)
 		{
 			addTimer(config.skullDuration());
+			log.debug("Skull timer started with {} minutes remaining.", timer.getRemainingTime().toMinutes());
 		}
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timer != null)
 		{
+			log.debug("Skull timer paused with {} minutes remaining.", timer.getRemainingTime().toMinutes());
 			removeTimer(true);
 		}
 	}
@@ -100,7 +103,7 @@ public class SkullTimerPlugin extends Plugin
 	public void onGameTick(GameTick gameTickEvent)
 	{
 		//if the player does not have a skull icon or the timer has expired
-		if (timer != null && (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == null))
+		if (timer != null && (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
 			removeTimer(false);
 		}
@@ -117,17 +120,19 @@ public class SkullTimerPlugin extends Plugin
 		//removes the timer if a timer is already created.
 		removeTimer(timer != null);
 		timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this, config.textColour(), config.warningTextColour());
-		timer.setTooltip("Time left until your character becomes unskulled.");
+		timer.setTooltip("Time left until your character becomes unskulled");
 		infoBoxManager.addInfoBox(timer);
+		log.debug("Created skull duration timer.");
 	}
 
 	public void removeTimer(boolean saveConfig) throws IllegalArgumentException
 	{
 		if (saveConfig) {config.skullDuration(timer.getRemainingTime());}
-		else {config.skullDuration(null);}
+		else {config.skullDuration(Duration.ofMinutes(0));}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
 		timer = null;
+		log.debug("Removed skull duration timer.");
 	}
 
 	@Provides

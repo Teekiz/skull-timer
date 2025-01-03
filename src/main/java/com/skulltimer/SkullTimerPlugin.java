@@ -36,6 +36,10 @@ import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
+import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -107,7 +111,43 @@ public class SkullTimerPlugin extends Plugin
 		{
 			removeTimer(false);
 		}
+		// Check for amulet of avarice
+		checkAmuletOfAvarice();
 	}
+
+	private void checkAmuletOfAvarice()
+	{
+		// Get the player's equipment
+		final ItemContainer equipment = client.getItemContainer(InventoryID.EQUIPMENT);
+
+		// Ensure the equipment is not null (e.g., during loading screens)
+		if (equipment == null)
+		{
+			return;
+		}
+
+		// Check if amulet is being worn and if its amulet of avarice
+		final Item amulet = equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx());
+		if (amulet != null && amulet.getId() == ItemID.AMULET_OF_AVARICE) {
+			// Check if timer is not null
+			if (timer != null) {
+				removeTimer(true);
+			}
+
+			// Ensure the player remains skulled while the amulet is worn
+			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.SKULL) {
+				log.debug("Player remains skulled due to wearing the Amulet of Avarice.");
+			}
+		}
+
+		// If amulet of avarice is unequipped, start a 20-minute timer
+		if (timer == null)
+		{
+			log.debug("Amulet of Avarice unequipped. Starting 20-minute skull timer.");
+			addTimer(Duration.ofMinutes(20));
+		}
+	}
+
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
@@ -127,8 +167,13 @@ public class SkullTimerPlugin extends Plugin
 
 	public void removeTimer(boolean saveConfig) throws IllegalArgumentException
 	{
-		if (saveConfig) {config.skullDuration(timer.getRemainingTime());}
-		else {config.skullDuration(Duration.ofMinutes(0));}
+		// Check if timer has duration remaining (boolean), set timer accordingly
+		if (saveConfig) {
+			config.skullDuration(timer.getRemainingTime());
+		}
+		else {
+			config.skullDuration(Duration.ofMinutes(0));
+		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
 		timer = null;

@@ -38,8 +38,8 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.InventoryID;
-import net.runelite.api.Item;
-import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -58,13 +58,26 @@ public class SkullTimerPlugin extends Plugin
 	@Inject
 	private Client client;
 	@Inject
+	private ClientThread clientThread;
+	@Inject
 	private SkullTimerConfig config;
 	@Inject
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
 	private SkulledTimer timer;
+	private EquipmentChecker equipmentChecker;
 	private final Duration durationTrader = Duration.ofMinutes(20);
+	private final InventoryID equipment = InventoryID.EQUIPMENT;
+
+	@Override
+	protected void startUp() throws Exception
+	{
+		equipmentChecker = new EquipmentChecker();
+		clientThread.invoke(() -> {
+			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
+		});
+	}
 
 	@Override
 	protected void shutDown() throws Exception
@@ -81,6 +94,9 @@ public class SkullTimerPlugin extends Plugin
 		{
 			addTimer(config.skullDuration());
 			log.debug("Skull timer started with {} minutes remaining.", timer.getRemainingTime().toMinutes());
+		} else if (gameStateChanged.getGameState() == GameState.LOGGED_IN) {
+			//sets the initial state of the equipment checker.
+			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
 		}
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timer != null)
@@ -111,43 +127,29 @@ public class SkullTimerPlugin extends Plugin
 		{
 			removeTimer(false);
 		}
-		// Check for amulet of avarice
-		checkAmuletOfAvarice();
 	}
 
-	private void checkAmuletOfAvarice()
+	@Subscribe
+	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
-		// Get the player's equipment
-		final ItemContainer equipment = client.getItemContainer(InventoryID.EQUIPMENT);
-
-		// Ensure the equipment is not null (e.g., during loading screens)
-		if (equipment == null)
+		// checks to see if the changes made are to the equipment
+		if (client.getItemContainer(equipment) != null &&
+			itemContainerChanged.getItemContainer() == client.getItemContainer(equipment))
 		{
-			return;
-		}
+			ItemContainer equipmentContainer = client.getItemContainer(equipment);
 
-		// Check if amulet is being worn and if its amulet of avarice
-		final Item amulet = equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx());
-		if (amulet != null && amulet.getId() == ItemID.AMULET_OF_AVARICE) {
-			// Check if timer is not null
-			if (timer != null) {
-				removeTimer(true);
+			if (equipmentChecker.hasEquipmentChanged(equipmentContainer) && client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
+			{
+				addTimer(durationTrader);
 			}
-
-			// Ensure the player remains skulled while the amulet is worn
-			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.SKULL) {
-				log.debug("Player remains skulled due to wearing the Amulet of Avarice.");
+			//if the player has any skulled equipment on, and there is an existing timer
+			else if (equipmentChecker.isWearingSkulledItem(equipmentContainer) &&
+				client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timer != null) {
+				log.debug("Removing timer as player has equipped a skulled item.");
+				removeTimer(false);
 			}
-		}
-
-		// If amulet of avarice is unequipped, start a 20-minute timer
-		if (timer == null)
-		{
-			log.debug("Amulet of Avarice unequipped. Starting 20-minute skull timer.");
-			addTimer(Duration.ofMinutes(20));
 		}
 	}
-
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
@@ -155,17 +157,35 @@ public class SkullTimerPlugin extends Plugin
 		if (timer != null) {addTimer(timer.getRemainingTime());}
 	}
 
-	public void addTimer(Duration timerDuration) throws IllegalArgumentException
+	/**
+	 * A method that creates and adds a timer to the clients infobox. <p>
+	 *
+	 * If there is an existing timer, it is removed using {@code RemoveTimer}. Checks are also performed to ensure that any
+	 * timer created is not negative or that the timer is zero.
+	 *
+	 * @param timerDuration The {@link Duration} of the timer to be created.
+	 */
+	private void addTimer(Duration timerDuration) throws IllegalArgumentException
 	{
 		//removes the timer if a timer is already created.
 		removeTimer(timer != null);
-		timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this, config.textColour(), config.warningTextColour());
-		timer.setTooltip("Time left until your character becomes unskulled");
-		infoBoxManager.addInfoBox(timer);
-		log.debug("Created skull duration timer.");
+
+		if (!timerDuration.isNegative() && !timerDuration.isZero()) {
+			timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this, config.textColour(), config.warningTextColour());
+			timer.setTooltip("Time left until your character becomes unskulled");
+			infoBoxManager.addInfoBox(timer);
+			log.debug("Created skull duration timer.");
+		}
 	}
 
-	public void removeTimer(boolean saveConfig) throws IllegalArgumentException
+	/**
+	 * A method that removes any existing timer.
+	 * @param saveConfig A {@link Boolean} to determine if duration of the existing timer should be saved.
+	 *                   If the value passed is {@code true} then the remaining time will be saved in the config file. Otherwise if {@code false}
+	 *                   then the existing config will be overwritten with a duration of 0 minutes.
+	 */
+
+	private void removeTimer(boolean saveConfig) throws IllegalArgumentException
 	{
 		// Check if timer has duration remaining (boolean), set timer accordingly
 		if (saveConfig) {

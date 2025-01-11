@@ -43,8 +43,7 @@ public class SkulledTimer extends Timer
 
 	public Duration getRemainingTime()
 	{
-		Duration remainingTime = Duration.between(Instant.now(), getEndTime());
-		return remainingTime;
+		return Duration.between(Instant.now(), getEndTime());
 	}
 
 	public Color getTextColor()

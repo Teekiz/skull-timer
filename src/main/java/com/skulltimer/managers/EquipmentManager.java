@@ -1,10 +1,14 @@
-package com.skulltimer;
+package com.skulltimer.managers;
 
+import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 
@@ -13,10 +17,29 @@ import net.runelite.api.ItemContainer;
  * <pr> This feature is based on the suggestion and code provided by @juusokarjanlahti (<a href="https://github.com/juusokarjanlahti">GitHub</a>).</pr>
  */
 @Slf4j
-public class EquipmentChecker
+public class EquipmentManager
 {
+	@Inject
+	private final Client client;
+
 	/** A {@link Boolean} value that is changed when a player equips an item which provides a skull (e.g. amulet of avarice). */
 	private boolean hasEquippedIndefiniteSkullItem = false;
+
+	/**
+	 * The constructor for a {@link EquipmentManager} object.
+	 * @param client Runelite's {@link Client} object.
+	 */
+	public EquipmentManager(Client client) {
+		this.client = client;
+	}
+
+	/**
+	 * A method used to get the equipment inventory {@link ItemContainer}.
+	 * @return The {@link ItemContainer} for the {@link Client}'s equipment tab.
+	 */
+	public ItemContainer getEquipment(){
+		return client.getItemContainer(InventoryID.EQUIPMENT);
+	}
 
 	/**
 	 * A method used to check if a timer should be started by checking for any equipment that would provide a skulled status.
@@ -29,20 +52,21 @@ public class EquipmentChecker
 	 * 4) The player has previously worn indefinite skulled equipment but it has been unequipped. (returns {@code true}).<br>
 	 * 5) The player is wearing both permanent and temporary skulled items. (returns {@code false}).<br>
 	 * </p>
-	 * @param equipment An {@link ItemContainer} representing the equipment inventory.
 	 * @return A {@link Boolean} value to indicate whether a {@link SkulledTimer} should be started:
 	 * 		   {@code true} if a timer should be started (e.i. they are wearing or have worn equipment that provides a skull),
 	 * 		   {@code false} if a timer should not be started (i.e. the player is not wearing any corresponding equipment).
 	 */
-	public boolean hasEquipmentChanged(ItemContainer equipment)
+	public boolean hasEquipmentChanged()
 	{
+		ItemContainer equipment = getEquipment();
+
 		// Ensure the equipment is not null (e.g., during loading screens)
 		if (equipment == null) {
 			log.debug("Equipment is null.");
 			return false;
 		}
 
-		boolean itemCheck = isWearingSkulledItem(equipment);
+		boolean itemCheck = isWearingSkulledItem();
 
 		// Player is wearing no items
 		if (!itemCheck) {
@@ -60,13 +84,14 @@ public class EquipmentChecker
 
 	/**
 	 * A method to identify if the player is wearing any armour that would provide a skulled status.
-	 * @param equipment An {@link ItemContainer} representing the equipment inventory.
 	 * @return A {@link Boolean} value to indicate if the player is wearing any armour that provides a skull:
 	 * 			{@code true} if the player is wearing any matching armour in {@link SkulledItems},
 	 * 			{@code false} if not.
 	 */
-	public boolean isWearingSkulledItem(ItemContainer equipment)
+	public boolean isWearingSkulledItem()
 	{
+		ItemContainer equipment = getEquipment();
+
 		// Ensure the equipment is not null (e.g., during loading screens)
 		if (equipment == null) {
 			return false;

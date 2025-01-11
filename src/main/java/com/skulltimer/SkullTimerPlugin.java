@@ -24,6 +24,7 @@
 package com.skulltimer;
 
 import com.google.inject.Provides;
+import com.skulltimer.enums.TimerDurations;
 import java.time.Duration;
 import java.time.Instant;
 import javax.inject.Inject;
@@ -39,6 +40,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.InventoryID;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -67,13 +69,15 @@ public class SkullTimerPlugin extends Plugin
 	private ItemManager itemManager;
 	private SkulledTimer timer;
 	private EquipmentChecker equipmentChecker;
-	private final Duration durationTrader = Duration.ofMinutes(20);
+	private LocationChecker locationChecker;
 	private final InventoryID equipment = InventoryID.EQUIPMENT;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		equipmentChecker = new EquipmentChecker();
+		locationChecker = new LocationChecker(client);
+
 		clientThread.invoke(() -> {
 			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
 		});
@@ -92,10 +96,14 @@ public class SkullTimerPlugin extends Plugin
 		//logging in - create timer
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN && config.skullDuration() != null && timer == null)
 		{
+			//todo - delete
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", locationChecker.isInWilderness() ? "yes" : "no", null);
 			addTimer(config.skullDuration());
 			log.debug("Skull timer started with {} minutes remaining.", timer.getRemainingTime().toMinutes());
 		} else if (gameStateChanged.getGameState() == GameState.LOGGED_IN) {
 			//sets the initial state of the equipment checker.
+			//todo - delete
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", locationChecker.isInWilderness() ? "yes" : "no", null);
 			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
 		}
 		//logged out or hopping - stop timer
@@ -114,7 +122,7 @@ public class SkullTimerPlugin extends Plugin
 		if (messageEvent.getType() == ChatMessageType.MESBOX && (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
 		messageEvent.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
-			addTimer(durationTrader);
+			addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 		}
 	}
 
@@ -140,7 +148,7 @@ public class SkullTimerPlugin extends Plugin
 
 			if (equipmentChecker.hasEquipmentChanged(equipmentContainer) && client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
 			{
-				addTimer(durationTrader);
+				addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 			}
 			//if the player has any skulled equipment on, and there is an existing timer
 			else if (equipmentChecker.isWearingSkulledItem(equipmentContainer) &&
@@ -148,6 +156,16 @@ public class SkullTimerPlugin extends Plugin
 				log.debug("Removing timer as player has equipped a skulled item.");
 				removeTimer(false);
 			}
+		}
+	}
+
+	@Subscribe
+	public void onOverheadTextChanged(OverheadTextChanged overheadTextChanged)
+	{
+		if (overheadTextChanged.getActor().getName().equalsIgnoreCase("Mage of Zamorak")){
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "test", overheadTextChanged.getOverheadText(), null);
+			//todo - delete
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", locationChecker.isInWilderness() ? "yes" : "no", null);
 		}
 	}
 

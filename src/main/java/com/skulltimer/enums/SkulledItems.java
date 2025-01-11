@@ -1,4 +1,4 @@
-package com.skulltimer;
+package com.skulltimer.enums;
 
 import lombok.Getter;
 import net.runelite.api.EquipmentInventorySlot;
@@ -23,5 +23,4 @@ public enum SkulledItems
 		this.itemSlot = itemSlot;
 		this.isSkullIndefinite = isSkullIndefinite;
 	}
-
 }

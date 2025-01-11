@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import lombok.Setter;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
+import net.runelite.api.SkullIcon;
 import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 
@@ -29,13 +30,14 @@ public class LocationManager
 
 	/**
 	 * A method used to check if the player has been teleported into the abyss.
-	 * @return {@code true} if the player has been previously teleported and is now in the abyss, {@code false} if not.
+	 * @return {@code true} if the player has been previously teleported, is now in the abyss and has a skull, {@code false} if not.
 	 */
 	public boolean isInAbyss()
 	{
-		if (isInArea(WorldAreas.ABYSS.getX(), WorldAreas.ABYSS.getY(), getPlayersLocation()) && hasBeenTeleportedIntoAbyss){
-			hasBeenTeleportedIntoAbyss = false;
-			return true;
+		if (isInArea(WorldAreas.ABYSS.getX(), WorldAreas.ABYSS.getY(), getPlayersLocation()) && hasBeenTeleportedIntoAbyss &&
+			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+				hasBeenTeleportedIntoAbyss = false;
+				return true;
 		} else {
 			hasBeenTeleportedIntoAbyss = false;
 			return false;

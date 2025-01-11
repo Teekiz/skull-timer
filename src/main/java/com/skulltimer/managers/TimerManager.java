@@ -51,14 +51,16 @@ public class TimerManager
 	 */
 	public void addTimer(Duration timerDuration) throws IllegalArgumentException
 	{
-		//removes the timer if a timer is already created.
-		removeTimer(timer != null);
+		if (shouldTimerBeUpdated(timerDuration)) {
+			//removes the timer if a timer is already created.
+			removeTimer(false);
 
-		if (!timerDuration.isNegative() && !timerDuration.isZero()) {
-			timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour());
-			timer.setTooltip("Time left until your character becomes unskulled");
-			infoBoxManager.addInfoBox(timer);
-			log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
+			if (!timerDuration.isNegative() && !timerDuration.isZero()) {
+				timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour());
+				timer.setTooltip("Time left until your character becomes unskulled");
+				infoBoxManager.addInfoBox(timer);
+				log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
+			}
 		}
 	}
 
@@ -72,15 +74,27 @@ public class TimerManager
 	public void removeTimer(boolean saveConfig) throws IllegalArgumentException
 	{
 		// Check if timer has duration remaining (boolean), set timer accordingly
-		if (saveConfig) {
+		if (saveConfig)
+		{
+			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
-		}
-		else {
-			config.skullDuration(Duration.ofMinutes(0));
 		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
 		timer = null;
 		log.debug("Removed skull duration timer.");
+	}
+
+	/**
+	 * A method used to determine if a new timer should be created by checking to see if the existing timer is lower than the proposed timer.
+	 * @param newDuration The new {@link Duration} to replace the existing timers' duration.
+	 * @return Returns {@code true} if the new duration is greater than the existing timer or if {@code timer} is null. Returns {@code false} if the new duration is lower than or equal to the old duration.
+	 */
+	private boolean shouldTimerBeUpdated(Duration newDuration){
+		if (timer != null && timer.getRemainingTime().compareTo(newDuration) > 0){
+			log.debug("Existing timer {} exceeds the duration of the proposed new timer {}. The timer will not be updated.", timer.getRemainingTime(), newDuration);
+			return false;
+		}
+		return true;
 	}
 }

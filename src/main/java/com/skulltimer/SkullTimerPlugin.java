@@ -96,7 +96,7 @@ public class SkullTimerPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
 	{
 		//logging in - create timer
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN )
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			if (config.skullDuration() != null && timerManager.getTimer() == null) {
 				timerManager.addTimer(config.skullDuration());
@@ -104,9 +104,11 @@ public class SkullTimerPlugin extends Plugin
 
 			//sets the initial state of the equipment checker.
 			equipmentManager.isWearingSkulledItem();
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "test", locationManager.isInAbyss() ? "is in abyss" : "is not in the abyss", null);
 
-
+			//checks to see if the new location is in the abyss.
+			if (locationManager.isInAbyss()) {
+				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+			}
 		}
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timerManager.getTimer() != null)

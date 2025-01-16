@@ -24,21 +24,22 @@
 package com.skulltimer;
 
 import com.google.inject.Provides;
-import java.time.Duration;
+import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.managers.EquipmentManager;
+import com.skulltimer.managers.LocationManager;
+import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.ItemID;
 import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.InventoryID;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -65,17 +66,21 @@ public class SkullTimerPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
-	private SkulledTimer timer;
-	private EquipmentChecker equipmentChecker;
-	private final Duration durationTrader = Duration.ofMinutes(20);
-	private final InventoryID equipment = InventoryID.EQUIPMENT;
+
+	private EquipmentManager equipmentManager;
+	private LocationManager locationManager;
+	private TimerManager timerManager;
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		equipmentChecker = new EquipmentChecker();
+		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
+		locationManager = new LocationManager(client, timerManager);
+		equipmentManager = new EquipmentManager(client, timerManager);
+
 		clientThread.invoke(() -> {
-			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
+
+			equipmentManager.updateCurrentEquipment();
 		});
 	}
 
@@ -83,26 +88,27 @@ public class SkullTimerPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		//save the timer when shutting down if it exists
-		removeTimer(timer != null);
+		timerManager.removeTimer(timerManager.getTimer() != null);
 	}
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
 	{
 		//logging in - create timer
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN && config.skullDuration() != null && timer == null)
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			addTimer(config.skullDuration());
-			log.debug("Skull timer started with {} minutes remaining.", timer.getRemainingTime().toMinutes());
-		} else if (gameStateChanged.getGameState() == GameState.LOGGED_IN) {
+			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
+			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
+				timerManager.addTimer(config.skullDuration());
+			}
 			//sets the initial state of the equipment checker.
-			equipmentChecker.isWearingSkulledItem(client.getItemContainer(equipment));
+			equipmentManager.updateCurrentEquipment();
 		}
 		//logged out or hopping - stop timer
-		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timer != null)
+		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timerManager.getTimer() != null)
 		{
-			log.debug("Skull timer paused with {} minutes remaining.", timer.getRemainingTime().toMinutes());
-			removeTimer(true);
+			log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
+			timerManager.removeTimer(true);
 		}
 	}
 
@@ -114,7 +120,7 @@ public class SkullTimerPlugin extends Plugin
 		if (messageEvent.getType() == ChatMessageType.MESBOX && (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
 		messageEvent.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
-			addTimer(durationTrader);
+			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 		}
 	}
 
@@ -123,9 +129,10 @@ public class SkullTimerPlugin extends Plugin
 	public void onGameTick(GameTick gameTickEvent)
 	{
 		//if the player does not have a skull icon or the timer has expired
-		if (timer != null && (Instant.now().isAfter(timer.getEndTime()) || client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
+		if (timerManager.getTimer() != null && (Instant.now().isAfter(timerManager.getTimer().getEndTime()) ||
+			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
-			removeTimer(false);
+			timerManager.removeTimer(false);
 		}
 	}
 
@@ -133,71 +140,38 @@ public class SkullTimerPlugin extends Plugin
 	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
 		// checks to see if the changes made are to the equipment
-		if (client.getItemContainer(equipment) != null &&
-			itemContainerChanged.getItemContainer() == client.getItemContainer(equipment))
+		if (equipmentManager.getEquipment() != null &&
+			itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
+			!equipmentManager.getModifiedItemSlotChanges().isEmpty())
 		{
-			ItemContainer equipmentContainer = client.getItemContainer(equipment);
-
-			if (equipmentChecker.hasEquipmentChanged(equipmentContainer) && client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
-			{
-				addTimer(durationTrader);
+			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+				equipmentManager.shouldTimerBeStarted(equipmentManager.getModifiedItemSlotChanges());
 			}
 			//if the player has any skulled equipment on, and there is an existing timer
-			else if (equipmentChecker.isWearingSkulledItem(equipmentContainer) &&
-				client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timer != null) {
+			else if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timerManager.getTimer() != null) {
 				log.debug("Removing timer as player has equipped a skulled item.");
-				removeTimer(false);
+				timerManager.removeTimer(false);
 			}
+		}
+	}
+
+	@Subscribe
+	public void onOverheadTextChanged(OverheadTextChanged overheadTextChanged)
+	{
+		if (overheadTextChanged.getActor().getName() != null &&
+			overheadTextChanged.getActor().getName().equalsIgnoreCase("Mage of Zamorak") &&
+		 	overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!")){
+			//sets one of the conditions to add the abyss timer.
+			locationManager.setHasBeenTeleportedIntoAbyss(true);
 		}
 	}
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (timer != null) {addTimer(timer.getRemainingTime());}
-	}
-
-	/**
-	 * A method that creates and adds a timer to the clients infobox. <p>
-	 *
-	 * If there is an existing timer, it is removed using {@code RemoveTimer}. Checks are also performed to ensure that any
-	 * timer created is not negative or that the timer is zero.
-	 *
-	 * @param timerDuration The {@link Duration} of the timer to be created.
-	 */
-	private void addTimer(Duration timerDuration) throws IllegalArgumentException
-	{
-		//removes the timer if a timer is already created.
-		removeTimer(timer != null);
-
-		if (!timerDuration.isNegative() && !timerDuration.isZero()) {
-			timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), this, config.textColour(), config.warningTextColour());
-			timer.setTooltip("Time left until your character becomes unskulled");
-			infoBoxManager.addInfoBox(timer);
-			log.debug("Created skull duration timer.");
+		if (timerManager.getTimer() != null) {
+			timerManager.addTimer(timerManager.getTimer().getRemainingTime());
 		}
-	}
-
-	/**
-	 * A method that removes any existing timer.
-	 * @param saveConfig A {@link Boolean} to determine if duration of the existing timer should be saved.
-	 *                   If the value passed is {@code true} then the remaining time will be saved in the config file. Otherwise if {@code false}
-	 *                   then the existing config will be overwritten with a duration of 0 minutes.
-	 */
-
-	private void removeTimer(boolean saveConfig) throws IllegalArgumentException
-	{
-		// Check if timer has duration remaining (boolean), set timer accordingly
-		if (saveConfig) {
-			config.skullDuration(timer.getRemainingTime());
-		}
-		else {
-			config.skullDuration(Duration.ofMinutes(0));
-		}
-
-		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);
-		timer = null;
-		log.debug("Removed skull duration timer.");
 	}
 
 	@Provides

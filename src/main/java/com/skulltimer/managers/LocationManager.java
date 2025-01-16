@@ -1,8 +1,10 @@
 package com.skulltimer.managers;
 
+import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.WorldAreas;
 import javax.inject.Inject;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
@@ -12,10 +14,12 @@ import net.runelite.api.coords.WorldPoint;
 /**
  * A class that is used to check a players world location to identify if a skull timer is required.
  */
+@Slf4j
 public class LocationManager
 {
 	@Inject
 	private final Client client;
+	private final TimerManager timerManager;
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
 
@@ -23,24 +27,24 @@ public class LocationManager
 	 * The constructor for a {@link LocationManager} object.
 	 * @param client Runelite's {@link Client} object.
 	 */
-	public LocationManager(Client client)
+	public LocationManager(Client client, TimerManager timerManager)
 	{
 		this.client = client;
+		this.timerManager = timerManager;
 	}
 
 	/**
-	 * A method used to check if the player has been teleported into the abyss.
-	 * @return {@code true} if the player has been previously teleported, is now in the abyss and has a skull, {@code false} if not.
+	 * A method used to check if the player has been teleported into the abyss. If the player has been teleported into the abyss, a timer will be started.
 	 */
-	public boolean isInAbyss()
+	public void isInAbyss()
 	{
 		if (isInArea(WorldAreas.ABYSS.getX(), WorldAreas.ABYSS.getY(), getPlayersLocation()) && hasBeenTeleportedIntoAbyss &&
 			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 				hasBeenTeleportedIntoAbyss = false;
-				return true;
+				log.debug("Player has been teleported into the abyss. Starting timer.");
+				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 		} else {
 			hasBeenTeleportedIntoAbyss = false;
-			return false;
 		}
 	}
 

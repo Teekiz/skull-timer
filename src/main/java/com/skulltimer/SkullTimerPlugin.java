@@ -28,14 +28,12 @@ import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
 import com.skulltimer.managers.TimerManager;
-import java.time.Duration;
 import java.time.Instant;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.ItemID;
 import net.runelite.api.SkullIcon;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -77,11 +75,12 @@ public class SkullTimerPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
-		equipmentManager = new EquipmentManager(client);
-		locationManager = new LocationManager(client);
+		locationManager = new LocationManager(client, timerManager);
+		equipmentManager = new EquipmentManager(client, timerManager);
 
 		clientThread.invoke(() -> {
-			equipmentManager.isWearingSkulledItem();
+
+			equipmentManager.updateCurrentEquipment();
 		});
 	}
 
@@ -103,12 +102,10 @@ public class SkullTimerPlugin extends Plugin
 			}
 
 			//sets the initial state of the equipment checker.
-			equipmentManager.isWearingSkulledItem();
+			equipmentManager.updateCurrentEquipment();
 
 			//checks to see if the new location is in the abyss.
-			if (locationManager.isInAbyss()) {
-				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
-			}
+			locationManager.isInAbyss();
 		}
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timerManager.getTimer() != null)
@@ -147,14 +144,14 @@ public class SkullTimerPlugin extends Plugin
 	{
 		// checks to see if the changes made are to the equipment
 		if (equipmentManager.getEquipment() != null &&
-			itemContainerChanged.getItemContainer() == equipmentManager.getEquipment())
+			itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
+			!equipmentManager.getModifiedItemSlotChanges().isEmpty())
 		{
-			if (equipmentManager.hasEquipmentChanged() && client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE) {
-				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+				equipmentManager.shouldTimerBeStarted(equipmentManager.getModifiedItemSlotChanges());
 			}
 			//if the player has any skulled equipment on, and there is an existing timer
-			else if (equipmentManager.isWearingSkulledItem() &&
-				client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timerManager.getTimer() != null) {
+			else if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timerManager.getTimer() != null) {
 				log.debug("Removing timer as player has equipped a skulled item.");
 				timerManager.removeTimer(false);
 			}

@@ -97,15 +97,12 @@ public class SkullTimerPlugin extends Plugin
 		//logging in - create timer
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			if (config.skullDuration() != null && timerManager.getTimer() == null) {
+			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
+			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
 				timerManager.addTimer(config.skullDuration());
 			}
-
 			//sets the initial state of the equipment checker.
 			equipmentManager.updateCurrentEquipment();
-
-			//checks to see if the new location is in the abyss.
-			locationManager.isInAbyss();
 		}
 		//logged out or hopping - stop timer
 		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timerManager.getTimer() != null)

@@ -36,15 +36,17 @@ public class LocationManager
 	/**
 	 * A method used to check if the player has been teleported into the abyss. If the player has been teleported into the abyss, a timer will be started.
 	 */
-	public void isInAbyss()
+	public boolean isInAbyss()
 	{
 		if (isInArea(WorldAreas.ABYSS.getX(), WorldAreas.ABYSS.getY(), getPlayersLocation()) && hasBeenTeleportedIntoAbyss &&
 			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 				hasBeenTeleportedIntoAbyss = false;
 				log.debug("Player has been teleported into the abyss. Starting timer.");
 				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+				return true;
 		} else {
 			hasBeenTeleportedIntoAbyss = false;
+			return false;
 		}
 	}
 

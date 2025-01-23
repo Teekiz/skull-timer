@@ -79,7 +79,7 @@ public class TimerManager
 			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
 		} else {
-			config.skullDuration(); //todo test
+			config.skullDuration();
 		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);

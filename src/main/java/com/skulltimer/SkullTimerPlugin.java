@@ -25,19 +25,33 @@ package com.skulltimer;
 
 import com.google.inject.Provides;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
 import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Actor;
+import net.runelite.api.AnimationID;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Item;
+import net.runelite.api.ItemID;
+import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
+import net.runelite.api.VarClientInt;
+import net.runelite.api.VarClientStr;
+import net.runelite.api.VarPlayer;
+import net.runelite.api.Varbits;
+import net.runelite.api.annotations.Varp;
+import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.client.callback.ClientThread;
@@ -70,6 +84,8 @@ public class SkullTimerPlugin extends Plugin
 	private EquipmentManager equipmentManager;
 	private LocationManager locationManager;
 	private TimerManager timerManager;
+	private CombatManager combatManager;
+	private int gameTick;
 
 	@Override
 	protected void startUp() throws Exception
@@ -77,6 +93,8 @@ public class SkullTimerPlugin extends Plugin
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
+		combatManager = new CombatManager(timerManager);
+		gameTick = 0;
 
 		clientThread.invoke(() -> {
 
@@ -91,6 +109,9 @@ public class SkullTimerPlugin extends Plugin
 		timerManager.removeTimer(timerManager.getTimer() != null);
 	}
 
+	/*
+		This event if the player logs in/out or is teleported to another location (e.g. the Abyss).
+ 	*/
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
 	{
@@ -112,7 +133,9 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	//if the player talks to the emblem trader they will receive this message.
+	/*
+		This event if the player talks to the Emblem Trader.
+ 	*/
 	@Subscribe
 	public void onChatMessage(ChatMessage messageEvent)
 	{
@@ -124,18 +147,30 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	//removes the timer if it expires or the player looses the skull
+	/*
+		This event is used to remove the skull timer should the icon expire.
+ 	*/
 	@Subscribe
 	public void onGameTick(GameTick gameTickEvent)
 	{
+		gameTick++;
+
 		//if the player does not have a skull icon or the timer has expired
 		if (timerManager.getTimer() != null && (Instant.now().isAfter(timerManager.getTimer().getEndTime()) ||
 			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
 			timerManager.removeTimer(false);
 		}
+
+		//cleans up the existing records
+		if (combatManager.isOutOfCombat(gameTick)){
+			combatManager.cleanupRecords();
+		}
 	}
 
+	/*
+		This event is used for item checks.
+	 */
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
@@ -155,6 +190,9 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/*
+		This event is used to confirm if the player has been teleported to the abyss.
+	 */
 	@Subscribe
 	public void onOverheadTextChanged(OverheadTextChanged overheadTextChanged)
 	{
@@ -163,6 +201,61 @@ public class SkullTimerPlugin extends Plugin
 		 	overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!")){
 			//sets one of the conditions to add the abyss timer.
 			locationManager.setHasBeenTeleportedIntoAbyss(true);
+		}
+	}
+
+	/*
+		PVP Events - Interaction then animation
+	 */
+	@Subscribe
+	public void onInteractingChanged(InteractingChanged interactingChanged)
+	{
+		//if the player is not in the wilderness then skip
+		if (!locationManager.isInWilderness()){
+			return;
+		}
+
+		Actor target = interactingChanged.getTarget();
+		Actor source = interactingChanged.getSource();
+
+		//if the player has been attacked/interacted with
+		if (target instanceof Player && source instanceof Player
+			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+			combatManager.onAnimationOrInteractionChange((Player) source, gameTick, false);
+		}
+	}
+
+	//check if there is an interaction within the last 10 seconds, if there isn't and the next hitsplat is mine, assume that its attacked
+
+	@Subscribe
+	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
+	{
+		if (!locationManager.isInWilderness()){
+			return;
+		}
+
+		//if the player attacks a player in the wilderness
+		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player){
+			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), gameTick);
+			combatManager.setTickLastHitsplatOccurredOn(gameTick);
+		} else if (hitsplatApplied.getActor() instanceof Player && hitsplatApplied.getActor().getName() != null &&
+			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+			combatManager.setTickLastHitsplatOccurredOn(gameTick);
+		}
+	}
+
+	@Subscribe
+	public void onAnimationChanged(AnimationChanged animationChanged)
+	{
+		if (!locationManager.isInWilderness()){
+			return;
+		}
+
+		if (animationChanged.getActor() != null &&
+			animationChanged.getActor() instanceof Player &&
+			((Player) animationChanged.getActor()).getId() != client.getLocalPlayer().getId())
+		{
+			combatManager.onAnimationOrInteractionChange((Player) animationChanged.getActor(), gameTick, true);
 		}
 	}
 

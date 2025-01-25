@@ -33,19 +33,11 @@ import java.time.Instant;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
-import net.runelite.api.AnimationID;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.Item;
-import net.runelite.api.ItemID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
-import net.runelite.api.VarClientInt;
-import net.runelite.api.VarClientStr;
-import net.runelite.api.VarPlayer;
-import net.runelite.api.Varbits;
-import net.runelite.api.annotations.Varp;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -214,6 +206,8 @@ public class SkullTimerPlugin extends Plugin
 		Actor target = interactingChanged.getTarget();
 		Actor source = interactingChanged.getSource();
 
+		//todo - something and null might be autoretaliate
+
 		//if the player has been attacked/interacted with
 		if (target instanceof Player && source instanceof Player
 			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
@@ -226,12 +220,15 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
-		if (!locationManager.isInWilderness()){
+		//if the local player is not in the wilderness or if the player hit is the local player
+		if (!locationManager.isInWilderness() || hitsplatApplied.getActor().getName() != null &&
+			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
 			return;
 		}
 
-		//if the player attacks a player in the wilderness
-		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player){
+		//if the player attacks a player in the wilderness, and they have a skull icon
+		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
+			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), gameTick);
 		}
 	}
@@ -239,7 +236,7 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		if (!locationManager.isInWilderness()){
+		if (!locationManager.isInWilderness() || animationChanged.getActor().getAnimation() == -1){
 			return;
 		}
 

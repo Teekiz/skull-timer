@@ -130,6 +130,7 @@ public class SkullTimerPlugin extends Plugin
 		{
 			log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
 			timerManager.removeTimer(true);
+			combatManager.getAttackerRecords().clear();
 		}
 	}
 
@@ -160,11 +161,6 @@ public class SkullTimerPlugin extends Plugin
 			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
 			timerManager.removeTimer(false);
-		}
-
-		//cleans up the existing records
-		if (combatManager.isOutOfCombat(gameTick)){
-			combatManager.cleanupRecords();
 		}
 	}
 
@@ -237,10 +233,6 @@ public class SkullTimerPlugin extends Plugin
 		//if the player attacks a player in the wilderness
 		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player){
 			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), gameTick);
-			combatManager.setTickLastHitsplatOccurredOn(gameTick);
-		} else if (hitsplatApplied.getActor() instanceof Player && hitsplatApplied.getActor().getName() != null &&
-			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
-			combatManager.setTickLastHitsplatOccurredOn(gameTick);
 		}
 	}
 

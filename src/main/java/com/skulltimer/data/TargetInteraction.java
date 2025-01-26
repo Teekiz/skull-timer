@@ -24,6 +24,7 @@
 
 package com.skulltimer.data;
 
+import com.skulltimer.enums.CombatStatus;
 import lombok.Data;
 
 @Data
@@ -31,5 +32,11 @@ public class TargetInteraction
 {
 	private static final int defaultTickValue = -1;
 	private int tickNumberOfLastAttack = defaultTickValue;
-	private boolean hasRetaliated = false;
+	private CombatStatus combatStatus = CombatStatus.DEFAULT;
+	private boolean hasPreviouslyRetaliated = false;
+
+	public boolean hasRetaliated()
+	{
+		return combatStatus == CombatStatus.RETALIATED;
+	}
 }

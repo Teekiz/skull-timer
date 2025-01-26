@@ -125,14 +125,14 @@ public class EquipmentManager
 			//checks if an indefinite skull was previously worn but is now removed
 			else if (previous != null && previous.isSkullIndefinite() && hasNoIndefiniteSkullItem()) {
 				log.debug("Slot {} previously had an item with an indefinite skull: {}. Returning true.", entry.getKey(), previous);
-				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 				return;
 			}
 
 			//checks if the current item provides a skull (but not indefinitely)
 			else if (current != null && hasNoIndefiniteSkullItem()) {
 				log.debug("Slot {} has an item that provides a temporary skull: {}. Returning true.", entry.getKey(), current);
-				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 				return;
 			}
 		}

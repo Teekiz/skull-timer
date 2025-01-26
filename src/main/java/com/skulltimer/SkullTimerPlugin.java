@@ -24,6 +24,7 @@
 package com.skulltimer;
 
 import com.google.inject.Provides;
+import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
@@ -46,6 +47,7 @@ import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
+import net.runelite.api.events.PlayerDespawned;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -85,7 +87,7 @@ public class SkullTimerPlugin extends Plugin
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
-		combatManager = new CombatManager(timerManager);
+		combatManager = new CombatManager(timerManager, config.pvpToggle());
 		gameTick = 0;
 
 		clientThread.invoke(() -> {
@@ -112,7 +114,7 @@ public class SkullTimerPlugin extends Plugin
 		{
 			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
 			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
-				timerManager.addTimer(config.skullDuration());
+				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
 			}
 			//sets the initial state of the equipment checker.
 			equipmentManager.updateCurrentEquipment();
@@ -136,7 +138,7 @@ public class SkullTimerPlugin extends Plugin
 		if (messageEvent.getType() == ChatMessageType.MESBOX && (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
 		messageEvent.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
-			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 		}
 	}
 
@@ -206,8 +208,6 @@ public class SkullTimerPlugin extends Plugin
 		Actor target = interactingChanged.getTarget();
 		Actor source = interactingChanged.getSource();
 
-		//todo - something and null might be autoretaliate
-
 		//if the player has been attacked/interacted with
 		if (target instanceof Player && source instanceof Player
 			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
@@ -229,7 +229,7 @@ public class SkullTimerPlugin extends Plugin
 		//if the player attacks a player in the wilderness, and they have a skull icon
 		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
 			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
-			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), gameTick);
+			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTick);
 		}
 	}
 
@@ -249,11 +249,21 @@ public class SkullTimerPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onPlayerDespawned(PlayerDespawned playerDespawned)
+	{
+		if (playerDespawned.getPlayer().getName() != null && combatManager.getTargetRecords().containsKey(playerDespawned.getPlayer().getName())){
+			log.debug("Player {} combat status set to unknown.", playerDespawned.getPlayer().getName());
+			combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.UNKNOWN);
+		}
+	}
+
+	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
 		if (timerManager.getTimer() != null) {
-			timerManager.addTimer(timerManager.getTimer().getRemainingTime());
+			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), false);
 		}
+		combatManager.setPVPEnabled(config.pvpToggle());
 	}
 
 	@Provides

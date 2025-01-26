@@ -34,11 +34,13 @@ public class SkulledTimer extends Timer
 {
 	private final Color textColour;
 	private final Color warningColour;
-	public SkulledTimer(Duration duration, BufferedImage image, SkullTimerPlugin plugin, Color textColour, Color warningColour)
+	private final boolean isCautious;
+	public SkulledTimer(Duration duration, BufferedImage image, SkullTimerPlugin plugin, Color textColour, Color warningColour, boolean isCautious)
 	{
 		super(duration.toMillis(), ChronoUnit.MILLIS, image, plugin);
 		this.textColour = textColour;
 		this.warningColour = warningColour;
+		this.isCautious = isCautious;
 	}
 
 	public Duration getRemainingTime()
@@ -50,5 +52,10 @@ public class SkulledTimer extends Timer
 	{
 		if (getRemainingTime().getSeconds() <= 30) {return warningColour;}
 		else {return textColour;}
+	}
+
+	public boolean isCautious()
+	{
+		return isCautious;
 	}
 }

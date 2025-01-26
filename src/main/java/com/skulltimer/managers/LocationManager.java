@@ -66,7 +66,7 @@ public class LocationManager
 			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 				hasBeenTeleportedIntoAbyss = false;
 				log.debug("Player has been teleported into the abyss. Starting timer.");
-				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
 				return true;
 		} else {
 			hasBeenTeleportedIntoAbyss = false;

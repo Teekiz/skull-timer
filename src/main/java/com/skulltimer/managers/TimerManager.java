@@ -73,15 +73,21 @@ public class TimerManager
 	 *
 	 * @param timerDuration The {@link Duration} of the timer to be created.
 	 */
-	public void addTimer(Duration timerDuration) throws IllegalArgumentException
+	public void addTimer(Duration timerDuration, boolean useCautiousTimer) throws IllegalArgumentException
 	{
 		if (shouldTimerBeUpdated(timerDuration)) {
 			//removes the timer if a timer is already created.
 			removeTimer(false);
 
 			if (!timerDuration.isNegative() && !timerDuration.isZero()) {
-				timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour());
-				timer.setTooltip("Time left until your character becomes unskulled");
+				if (config.cautiousTimerToggle() && useCautiousTimer){
+					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColourCautious(), config.warningTextColourCautious(), true);
+					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE");
+				} else {
+					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour(), false);
+					timer.setTooltip("Time left until your character becomes unskulled.");
+
+				}
 				infoBoxManager.addInfoBox(timer);
 				log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
 			}
@@ -102,8 +108,10 @@ public class TimerManager
 		{
 			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
+			config.cautiousTimer(timer != null && timer.isCautious());
 		} else {
 			config.skullDuration();
+			config.cautiousTimer(timer != null && timer.isCautious());
 		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);

@@ -58,11 +58,11 @@ public class CombatManager
 	}
 
 	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
-		//if the attacker record already contains the player, update that instead
 		if (player.getName() == null){
 			return;
 		}
 
+		//if the attacker record already contains the player, update that instead
 		if (attackerRecords.containsKey(player.getName())) {
 			log.debug("Player {} already exists in attacker records. Updating existing record.", player.getName());
 			attackerRecords.put(player.getName(), currentTick);

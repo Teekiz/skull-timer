@@ -81,7 +81,7 @@ public class SkullTimerPlugin extends Plugin
 	private LocationManager locationManager;
 	private TimerManager timerManager;
 	private CombatManager combatManager;
-	private int gameTick;
+	private int gameTickCounter;
 
 	@Override
 	protected void startUp() throws Exception
@@ -90,7 +90,7 @@ public class SkullTimerPlugin extends Plugin
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
 		combatManager = new CombatManager(timerManager, config.pvpToggle());
-		gameTick = 0;
+		gameTickCounter = 0;
 
 		clientThread.invoke(() -> {
 			equipmentManager.updateCurrentEquipment();
@@ -108,7 +108,7 @@ public class SkullTimerPlugin extends Plugin
 		This event if the player logs in/out or is teleported to another location (e.g. the Abyss).
  	*/
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged) throws InterruptedException
+	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
 		//logging in - create timer
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
@@ -133,11 +133,11 @@ public class SkullTimerPlugin extends Plugin
 		This event if the player talks to the Emblem Trader.
  	*/
 	@Subscribe
-	public void onChatMessage(ChatMessage messageEvent)
+	public void onChatMessage(ChatMessage chatMessage)
 	{
 		//check the message type and content
-		if (messageEvent.getType() == ChatMessageType.MESBOX && (messageEvent.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
-		messageEvent.getMessage().equalsIgnoreCase("You are now skulled.")))
+		if (chatMessage.getType() == ChatMessageType.MESBOX && (chatMessage.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
+		chatMessage.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
 			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 		}
@@ -147,13 +147,13 @@ public class SkullTimerPlugin extends Plugin
 		This event is used to remove the skull timer should the icon expire.
  	*/
 	@Subscribe
-	public void onGameTick(GameTick gameTickEvent)
+	public void onGameTick(GameTick gameTick)
 	{
-		gameTick++;
+		gameTickCounter++;
 
 		//if the player does not have a skull icon or the timer has expired
-		if (timerManager.getTimer() != null && (Instant.now().isAfter(timerManager.getTimer().getEndTime()) ||
-			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
+		if ((timerManager.getTimer() != null && Instant.now().isAfter(timerManager.getTimer().getEndTime())) ||
+			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE)
 		{
 			timerManager.removeTimer(false);
 			config.cautiousTimer(false);
@@ -214,7 +214,7 @@ public class SkullTimerPlugin extends Plugin
 		//if the player has been attacked/interacted with
 		if (target instanceof Player && source instanceof Player
 			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
-			combatManager.onAnimationOrInteractionChange((Player) source, gameTick, false);
+			combatManager.onAnimationOrInteractionChange((Player) source, gameTickCounter, false);
 		}
 	}
 
@@ -230,7 +230,7 @@ public class SkullTimerPlugin extends Plugin
 		//if the player attacks a player in the wilderness, and they have a skull icon
 		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
 			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
-			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTick);
+			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTickCounter);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class SkullTimerPlugin extends Plugin
 			animationChanged.getActor() instanceof Player &&
 			((Player) animationChanged.getActor()).getId() != client.getLocalPlayer().getId())
 		{
-			combatManager.onAnimationOrInteractionChange((Player) animationChanged.getActor(), gameTick, true);
+			combatManager.onAnimationOrInteractionChange((Player) animationChanged.getActor(), gameTickCounter, true);
 		}
 	}
 

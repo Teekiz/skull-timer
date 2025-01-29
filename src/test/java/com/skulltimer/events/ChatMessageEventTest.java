@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,10 +29,34 @@ public class ChatMessageEventTest extends PluginMocks
 	}
 
 	@Test
-	public void EmblemTraderDialogue()
+	public void EmblemTraderDialogue_Standard()
+	{
+		when(chatMessage.getMessage()).thenReturn("You are now skulled.");
+		eventBus.post(chatMessage);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void EmblemTraderDialogue_Extended()
 	{
 		when(chatMessage.getMessage()).thenReturn("Your PK skull will now last for the full 20 minutes.");
 		eventBus.post(chatMessage);
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void MessageEvent_UnrelatedMessage()
+	{
+		when(chatMessage.getMessage()).thenReturn("A test message");
+		eventBus.post(chatMessage);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void MessageEvent_UnrelatedMessageType()
+	{
+		when(chatMessage.getType()).thenReturn(ChatMessageType.UNKNOWN);
+		eventBus.post(chatMessage);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 	}
 }

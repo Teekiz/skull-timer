@@ -4,5 +4,7 @@ public enum CombatStatus
 {
 	DEFAULT,
 	RETALIATED,
-	UNKNOWN;
+	DEAD,
+	UNKNOWN,
+	RETALIATED_UNKNOWN;
 }

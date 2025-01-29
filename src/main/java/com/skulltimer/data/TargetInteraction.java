@@ -33,10 +33,10 @@ public class TargetInteraction
 	private static final int defaultTickValue = -1;
 	private int tickNumberOfLastAttack = defaultTickValue;
 	private CombatStatus combatStatus = CombatStatus.DEFAULT;
-	private boolean hasPreviouslyRetaliated = false;
 
 	public boolean hasRetaliated()
 	{
-		return combatStatus == CombatStatus.RETALIATED;
+		return combatStatus == CombatStatus.RETALIATED ||
+			combatStatus == CombatStatus.RETALIATED_UNKNOWN;
 	}
 }

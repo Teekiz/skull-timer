@@ -58,7 +58,7 @@ public class CombatManager
 	}
 
 	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
-		if (player.getName() == null){
+		if (player.getName() == null || player.getName().isEmpty()){
 			return;
 		}
 
@@ -76,13 +76,13 @@ public class CombatManager
 			if ((isAnimation && interaction.getTickNumberOfLastInteraction() == currentTick) ||
 				(!isAnimation && interaction.getTickNumberOfLastAnimation() == currentTick)){
 
-				//if the player attacking  has either previously retaliated and does not have a skull or is a new interaction, upgrade them
 				TargetInteraction targetInteraction = targetRecords.get(player.getName());
 
-				if (shouldUpdateTarget(targetInteraction, player)){
-					log.debug("Player {} already exists in target records. {}", player.getName(), targetRecords.get(player.getName()).hasRetaliated() ? "" : "Updating record.");
+				//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
+				if (shouldUpdateTarget(targetInteraction)){
+					log.debug("Player {} already exists in target records. Updating record.", player.getName());
 					targetInteraction.setCombatStatus(CombatStatus.RETALIATED);
-					targetInteraction.setHasPreviouslyRetaliated(true);
+				//if the player is not a target (i.e. record is null), then check if they should be classified as an attacker
 				} else if (shouldUpgradeToAttacker(player)){
 					log.debug("Player {} exists in interaction records. Upgrading to attacker.", player.getName());
 					attackerRecords.put(player.getName(), currentTick);
@@ -103,18 +103,19 @@ public class CombatManager
 		}
 	}
 
+	//if the person who is attacking the local player has a skull, then it is same to assume they have initiated the fight
 	private boolean shouldUpgradeToAttacker(Player player){
 		return player.getSkullIcon() != SkullIcon.NONE;
 	}
 
-	private boolean shouldUpdateTarget(TargetInteraction targetInteraction, Player player){
-		return targetInteraction != null && ((targetInteraction.getCombatStatus() != CombatStatus.RETALIATED)
-			|| targetInteraction.isHasPreviouslyRetaliated() && player.getSkullIcon() == SkullIcon.NONE);
+	//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
+	private boolean shouldUpdateTarget(TargetInteraction targetInteraction){
+		return targetInteraction != null && ((!targetInteraction.hasRetaliated()));
 	}
 
 	public void onTargetHitsplat(Player player, Player localPlayer, int currentTick)
 	{
-		if (player.getName() == null){
+		if (player.getName() == null || player.getName().isEmpty()){
 			return;
 		}
 
@@ -124,12 +125,31 @@ public class CombatManager
 			targetInteraction.setTickNumberOfLastAttack(currentTick);
 			targetRecords.put(player.getName(), targetInteraction);
 			addTimerCheck(false);
-		} else if (targetRecords.containsKey(player.getName()) && !targetRecords.get(player.getName()).hasRetaliated() && targetRecords.get(player.getName()).getCombatStatus() != CombatStatus.UNKNOWN){
-			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
+			return;
+		}
+
+		TargetInteraction targetInteraction = targetRecords.get(player.getName());
+		if (targetInteraction == null){
+			return;
+		}
+
+		//if the player has died at some point, even if they had retaliated, start a new timer
+		if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
+			log.debug("Player {} was previously killed. Starting timer.", player.getName());
+			targetInteraction.setCombatStatus(CombatStatus.DEFAULT);
 			addTimerCheck(false);
-		} else if (targetRecords.containsKey(player.getName()) && targetRecords.get(player.getName()).getCombatStatus() == CombatStatus.UNKNOWN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
+		}
+
+		//if the player has moved away from the player, set the status to unknown, as the timer will now possibly be out of sync
+		else if (targetInteraction.getCombatStatus() == CombatStatus.UNKNOWN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
 			log.debug("Player {} is unknown but {} has skull. Starting timer.", player.getName(), localPlayer.getName());
 			addTimerCheck(true);
+		}
+
+		//if the target has retaliated at any point during the fight, then a new timer will not be started
+		else if (!targetInteraction.hasRetaliated()) {
+			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
+			addTimerCheck(false);
 		}
 	}
 

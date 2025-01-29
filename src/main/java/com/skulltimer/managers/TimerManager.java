@@ -82,7 +82,7 @@ public class TimerManager
 			if (!timerDuration.isNegative() && !timerDuration.isZero()) {
 				if (config.cautiousTimerToggle() && useCautiousTimer){
 					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColourCautious(), config.warningTextColourCautious(), true);
-					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE");
+					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE.");
 				} else {
 					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour(), false);
 					timer.setTooltip("Time left until your character becomes unskulled.");

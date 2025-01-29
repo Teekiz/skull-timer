@@ -24,6 +24,7 @@
 package com.skulltimer;
 
 import com.google.inject.Provides;
+import com.skulltimer.data.TargetInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.managers.CombatManager;
@@ -39,6 +40,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
+import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -155,6 +157,7 @@ public class SkullTimerPlugin extends Plugin
 			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
 			timerManager.removeTimer(false);
+			config.cautiousTimer(false);
 		}
 	}
 
@@ -197,6 +200,7 @@ public class SkullTimerPlugin extends Plugin
 	/*
 		PVP Events - Interaction then animation
 	 */
+	//todo - autoretaliate
 	@Subscribe
 	public void onInteractingChanged(InteractingChanged interactingChanged)
 	{
@@ -214,8 +218,6 @@ public class SkullTimerPlugin extends Plugin
 			combatManager.onAnimationOrInteractionChange((Player) source, gameTick, false);
 		}
 	}
-
-	//check if there is an interaction within the last 10 seconds, if there isn't and the next hitsplat is mine, assume that its attacked
 
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
@@ -248,12 +250,41 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	//todo - increase accuracy by seeing if they logged out, or just moved away
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
 		if (playerDespawned.getPlayer().getName() != null && combatManager.getTargetRecords().containsKey(playerDespawned.getPlayer().getName())){
-			log.debug("Player {} combat status set to unknown.", playerDespawned.getPlayer().getName());
-			combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.UNKNOWN);
+			TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName());
+			if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
+				log.debug("Player {} despawned. Target has been set to dead status.", playerDespawned.getPlayer().getName());
+			} else if (targetInteraction.hasRetaliated()){
+				log.debug("Player {} combat status set to retaliated unknown.", playerDespawned.getPlayer().getName());
+				combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.RETALIATED_UNKNOWN);
+			} else {
+				log.debug("Player {} combat status set to unknown.", playerDespawned.getPlayer().getName());
+				combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.UNKNOWN);
+			}
+		}
+	}
+
+	@Subscribe
+	public void onActorDeath(ActorDeath actorDeath)
+	{
+		if (actorDeath.getActor() instanceof Player && actorDeath.getActor().getName() != null)
+		{
+			String playerName = actorDeath.getActor().getName();
+			//if the local player is the one who is killed, then remove all attacker logs (as this is reset)
+			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName())){
+				log.debug("Player {} has died, resetting attacker and target records.", playerName);
+				combatManager.getAttackerRecords().clear();
+				combatManager.getTargetRecords().clear();
+			//if the player has killed their target, update their status
+			} else if (combatManager.getTargetRecords().containsKey(playerName)) {
+				log.debug("Player {} has died, updating combat status to dead.", playerName);
+				TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerName);
+				targetInteraction.setCombatStatus(CombatStatus.DEAD);
+			}
 		}
 	}
 

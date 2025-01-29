@@ -1,9 +1,9 @@
-package com.skulltimer;
+package com.skulltimer.managers;
 
+import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.data.TargetInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
-import com.skulltimer.managers.CombatManager;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -155,5 +156,30 @@ public class CombatManagerTests extends TimerMocks
 
 		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 		assertEquals(1, combatManager.getTargetRecords().size());
+		combatManager.setPVPEnabled(true);
+	}
+
+	@Test
+	public void targetHasDied()
+	{
+		TargetInteraction interaction = new TargetInteraction();
+		interaction.setCombatStatus(CombatStatus.DEAD);
+		combatManager.getTargetRecords().put("PlayerOne", interaction);
+
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void targetHasDied_PreviouslyRetaliated()
+	{
+		TargetInteraction interaction = new TargetInteraction();
+		interaction.setCombatStatus(CombatStatus.DEAD);
+		combatManager.getTargetRecords().put("PlayerOne", interaction);
+
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+
+		assertFalse(interaction.hasRetaliated());
 	}
 }

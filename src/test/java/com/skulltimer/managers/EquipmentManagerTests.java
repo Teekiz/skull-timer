@@ -12,6 +12,7 @@ import net.runelite.api.ItemID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class EquipmentManagerTests extends TimerMocks
 {
+	@InjectMocks
+	EquipmentManager equipmentManager;
 	@Mock
 	ItemContainer equipment;
 	@Mock
@@ -33,13 +36,11 @@ public class EquipmentManagerTests extends TimerMocks
 	@Mock
 	Item capeMockTwo;
 
-	EquipmentManager equipmentManager;
 	List<Integer> changedItemIDSlots;
 
 	@BeforeEach
 	public void startUp()
 	{
-		equipmentManager = new EquipmentManager(client, timerManager);
 		changedItemIDSlots = new ArrayList<>();
 		when(equipmentManager.getEquipment()).thenReturn(equipment);
 	}

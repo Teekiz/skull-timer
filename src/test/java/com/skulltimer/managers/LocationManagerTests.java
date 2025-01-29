@@ -8,6 +8,7 @@ import net.runelite.api.coords.WorldPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,16 +22,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class LocationManagerTests extends TimerMocks
 {
+	@InjectMocks
+	LocationManager locationManager;
 	@Mock
 	Player player;
-
-	LocationManager locationManager;
 
 	@BeforeEach
 	public void startUp()
 	{
 		lenient().when(client.getLocalPlayer()).thenReturn(player);
-		locationManager = new LocationManager(client, timerManager);
 	}
 
 	@Test

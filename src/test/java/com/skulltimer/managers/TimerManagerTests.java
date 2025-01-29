@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,12 +21,12 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class TimerManagerTests extends TimerMocks
 {
+	@InjectMocks
 	TimerManager timerManager;
 
 	@BeforeEach
 	public void startUp()
 	{
-		timerManager = new TimerManager(skullTimerPlugin, config, infoBoxManager, itemManager);
 		lenient().when(config.cautiousTimerToggle()).thenReturn(true);
 	}
 

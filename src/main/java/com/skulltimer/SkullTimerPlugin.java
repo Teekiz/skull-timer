@@ -93,7 +93,6 @@ public class SkullTimerPlugin extends Plugin
 		gameTick = 0;
 
 		clientThread.invoke(() -> {
-
 			equipmentManager.updateCurrentEquipment();
 		});
 	}

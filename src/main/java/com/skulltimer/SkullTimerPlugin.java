@@ -167,17 +167,10 @@ public class SkullTimerPlugin extends Plugin
 	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
 		// checks to see if the changes made are to the equipment
-		if (equipmentManager.getEquipment() != null &&
-			itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
-			!equipmentManager.getModifiedItemSlotChanges().isEmpty())
-		{
+		if (equipmentManager.getEquipment() != null && itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
+			!equipmentManager.getModifiedItemSlotChanges().isEmpty()) {
 			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 				equipmentManager.shouldTimerBeStarted(equipmentManager.getModifiedItemSlotChanges());
-			}
-			//if the player has any skulled equipment on, and there is an existing timer
-			else if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE && timerManager.getTimer() != null) {
-				log.debug("Removing timer as player has equipped a skulled item.");
-				timerManager.removeTimer(false);
 			}
 		}
 	}
@@ -237,15 +230,16 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		if (!locationManager.isInWilderness() || animationChanged.getActor().getAnimation() == -1){
+		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1){
 			return;
 		}
 
-		if (animationChanged.getActor() != null &&
-			animationChanged.getActor() instanceof Player &&
-			((Player) animationChanged.getActor()).getId() != client.getLocalPlayer().getId())
+		Actor actor = animationChanged.getActor();
+
+		if (actor instanceof Player && actor.getName() != null &&
+			!actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()))
 		{
-			combatManager.onAnimationOrInteractionChange((Player) animationChanged.getActor(), gameTickCounter, true);
+			combatManager.onAnimationOrInteractionChange((Player) actor, gameTickCounter, true);
 		}
 	}
 
@@ -253,7 +247,7 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
-		if (playerDespawned.getPlayer().getName() != null && combatManager.getTargetRecords().containsKey(playerDespawned.getPlayer().getName())){
+		if (playerDespawned.getPlayer() != null && playerDespawned.getPlayer().getName() != null && combatManager.getTargetRecords().containsKey(playerDespawned.getPlayer().getName())){
 			TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName());
 			if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
 				log.debug("Player {} despawned. Target has been set to dead status.", playerDespawned.getPlayer().getName());
@@ -282,7 +276,9 @@ public class SkullTimerPlugin extends Plugin
 			} else if (combatManager.getTargetRecords().containsKey(playerName)) {
 				log.debug("Player {} has died, updating combat status to dead.", playerName);
 				TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerName);
-				targetInteraction.setCombatStatus(CombatStatus.DEAD);
+				if (targetInteraction != null){
+					targetInteraction.setCombatStatus(CombatStatus.DEAD);
+				}
 			}
 		}
 	}

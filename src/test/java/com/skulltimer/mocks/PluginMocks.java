@@ -48,6 +48,5 @@ public class PluginMocks
 	public void startUp() throws NoSuchFieldException
 	{
 		eventBus = new EventBus();
-		eventBus.register(skullTimerPlugin);
-	}
+		eventBus.register(skullTimerPlugin);}
 }

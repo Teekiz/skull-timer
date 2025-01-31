@@ -80,4 +80,30 @@ public class PlayerDespawnedEventTest extends PluginMocks
 		eventBus.post(playerDespawned);
 		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.UNKNOWN);
 	}
+
+	@Test
+	public void playerLoggedOut_hasNotRetaliated()
+	{
+		when(targetRecords.containsKey("Player")).thenReturn(true);
+		when(targetRecords.get("Player")).thenReturn(targetInteraction);
+		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEFAULT);
+		when(targetInteraction.hasRetaliated()).thenReturn(false);
+		when(locationManager.hasPlayerLoggedOut(player)).thenReturn(true);
+
+		eventBus.post(playerDespawned);
+		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.LOGGED_OUT);
+	}
+
+	@Test
+	public void playerLoggedOut_hasRetaliated()
+	{
+		when(targetRecords.containsKey("Player")).thenReturn(true);
+		when(targetRecords.get("Player")).thenReturn(targetInteraction);
+		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEFAULT);
+		when(targetInteraction.hasRetaliated()).thenReturn(true);
+		when(locationManager.hasPlayerLoggedOut(player)).thenReturn(true);
+
+		eventBus.post(playerDespawned);
+		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.RETALIATED_LOGGED_OUT);
+	}
 }

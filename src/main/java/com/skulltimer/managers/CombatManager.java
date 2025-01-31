@@ -24,6 +24,7 @@
 
 package com.skulltimer.managers;
 
+import com.skulltimer.SkullTimerConfig;
 import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.data.TargetInteraction;
 import com.skulltimer.enums.CombatStatus;
@@ -34,6 +35,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
+
+//todo - write javadocs
 
 @Slf4j
 public class CombatManager
@@ -48,13 +51,13 @@ public class CombatManager
 	@Getter @Setter
 	private boolean isPVPEnabled;
 
-	public CombatManager(TimerManager timerManager, boolean isPVPEnabled)
+	public CombatManager(TimerManager timerManager, SkullTimerConfig config)
 	{
 		this.timerManager = timerManager;
 		this.attackerRecords = new HashMap<>();
 		this.targetRecords = new HashMap<>();
 		this.interactionRecords = new HashMap<>();
-		this.isPVPEnabled = isPVPEnabled;
+		this.isPVPEnabled = config.pvpToggle();
 	}
 
 	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
@@ -83,7 +86,7 @@ public class CombatManager
 					log.debug("Player {} already exists in target records. Updating target record to retaliated.", player.getName());
 					targetInteraction.setCombatStatus(CombatStatus.RETALIATED);
 				//if the player is not a target (i.e. record is null), then check if they should be classified as an attacker
-				} else if (shouldUpgradeToAttacker(player)){
+				} else if (shouldUpgradeToAttacker(player, targetInteraction)){
 					log.debug("Player {} exists in interaction records. Upgrading to attacker.", player.getName());
 					attackerRecords.put(player.getName(), currentTick);
 				}
@@ -104,13 +107,14 @@ public class CombatManager
 	}
 
 	//if the person who is attacking the local player has a skull, then it is same to assume they have initiated the fight
-	private boolean shouldUpgradeToAttacker(Player player){
-		return player.getSkullIcon() != SkullIcon.NONE;
+	private boolean shouldUpgradeToAttacker(Player player, TargetInteraction targetInteraction){
+		return (targetInteraction != null && targetInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT)
+			|| player.getSkullIcon() != SkullIcon.NONE;
 	}
 
 	//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
 	private boolean shouldUpdateTarget(TargetInteraction targetInteraction){
-		return targetInteraction != null && ((!targetInteraction.hasRetaliated()));
+		return targetInteraction != null && !targetInteraction.hasRetaliated();
 	}
 
 	public void onTargetHitsplat(Player player, Player localPlayer, int currentTick)
@@ -136,6 +140,13 @@ public class CombatManager
 		//if the player has died at some point, even if they had retaliated, start a new timer
 		if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
 			log.debug("Player {} was previously killed. Starting timer.", player.getName());
+			targetInteraction.setCombatStatus(CombatStatus.DEFAULT);
+			addTimerCheck(false);
+		}
+
+		//if the player has logged out at some point - the player can't attack them unless they retaliated
+		else if (targetInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT) {
+			log.debug("Player {} was previously logged out. Starting timer.", player.getName());
 			targetInteraction.setCombatStatus(CombatStatus.DEFAULT);
 			addTimerCheck(false);
 		}

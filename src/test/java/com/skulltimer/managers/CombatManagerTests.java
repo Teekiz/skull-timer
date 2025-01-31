@@ -9,6 +9,7 @@ import net.runelite.api.SkullIcon;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,16 +27,18 @@ public class CombatManagerTests extends TimerMocks
 	@Mock
 	Player localPlayer;
 
+	TargetInteraction targetInteraction;
+	@InjectMocks
 	CombatManager combatManager;
-	int tickCounter;
+
+	int tickCounter = 0;
 
 
 	@BeforeEach
 	public void startUp()
 	{
-		tickCounter = 0;
 		when(player.getName()).thenReturn("PlayerOne");
-		combatManager = new CombatManager(timerManager, true);
+		combatManager.setPVPEnabled(true);
 	}
 
 	@Test
@@ -90,6 +93,34 @@ public class CombatManagerTests extends TimerMocks
 	}
 
 	@Test
+	public void testUnprovokedAttackOnLocalPlayer_WithNoSkull()
+	{
+		when(player.getSkullIcon()).thenReturn(SkullIcon.NONE);
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+
+		//because the player attacked back, don't restart timer
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		assertEquals(0, combatManager.getAttackerRecords().size());
+	}
+
+	@Test
+	public void testUnprovokedAttackOnLocalPlayer_PlayerHadLoggedOut()
+	{
+		targetInteraction = new TargetInteraction();
+		targetInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
+		combatManager.getTargetRecords().put("PlayerOne", targetInteraction);
+
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+
+		//because the player had logged out, their attacking record would have been reset, causing them to become the aggressor.
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+	}
+
+	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithPlayerBeingSetToCautious()
 	{
 		TargetInteraction interaction = new TargetInteraction();
@@ -117,7 +148,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
-		//because the player attacked back, don't restart timer
+		//because the player didn't attack back, restart timer
 		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 		assertEquals(0, combatManager.getAttackerRecords().size());
 	}
@@ -128,9 +159,33 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
-		//because the player attacked back, don't restart timer
+		//because the player didn't attack back, restart timer
 		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 		assertEquals(0, combatManager.getAttackerRecords().size());
+	}
+
+	@Test
+	public void testUnprovokedAttackOnOtherPlayer_PlayerHadLoggedOut_WithNoRetaliation()
+	{
+		TargetInteraction interaction = new TargetInteraction();
+		interaction.setCombatStatus(CombatStatus.LOGGED_OUT);
+		combatManager.getTargetRecords().put("PlayerOne", interaction);
+
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+
+		//because the player attacked back, don't restart timer
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void testUnprovokedAttackOnOtherPlayer_PlayerHadLoggedOut_WithRetaliation()
+	{
+		TargetInteraction interaction = new TargetInteraction();
+		interaction.setCombatStatus(CombatStatus.RETALIATED_LOGGED_OUT);
+		combatManager.getTargetRecords().put("PlayerOne", interaction);
+
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 	}
 
 	@Test
@@ -163,9 +218,9 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void targetHasDied()
 	{
-		TargetInteraction interaction = new TargetInteraction();
-		interaction.setCombatStatus(CombatStatus.DEAD);
-		combatManager.getTargetRecords().put("PlayerOne", interaction);
+		targetInteraction = new TargetInteraction();
+		targetInteraction.setCombatStatus(CombatStatus.DEAD);
+		combatManager.getTargetRecords().put("PlayerOne", targetInteraction);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
@@ -174,13 +229,13 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void targetHasDied_PreviouslyRetaliated()
 	{
-		TargetInteraction interaction = new TargetInteraction();
-		interaction.setCombatStatus(CombatStatus.DEAD);
-		combatManager.getTargetRecords().put("PlayerOne", interaction);
+		targetInteraction = new TargetInteraction();
+		targetInteraction.setCombatStatus(CombatStatus.DEAD);
+		combatManager.getTargetRecords().put("PlayerOne", targetInteraction);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 
-		assertFalse(interaction.hasRetaliated());
+		assertFalse(targetInteraction.hasRetaliated());
 	}
 }

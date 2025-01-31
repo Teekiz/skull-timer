@@ -37,6 +37,7 @@ public class TargetInteraction
 	public boolean hasRetaliated()
 	{
 		return combatStatus == CombatStatus.RETALIATED ||
-			combatStatus == CombatStatus.RETALIATED_UNKNOWN;
+			combatStatus == CombatStatus.RETALIATED_UNKNOWN ||
+			combatStatus == CombatStatus.RETALIATED_LOGGED_OUT;
 	}
 }

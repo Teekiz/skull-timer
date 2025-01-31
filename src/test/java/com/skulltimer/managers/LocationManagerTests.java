@@ -26,7 +26,8 @@ public class LocationManagerTests extends TimerMocks
 	LocationManager locationManager;
 	@Mock
 	Player player;
-
+	@Mock
+	Player localPlayer;
 	@BeforeEach
 	public void startUp()
 	{
@@ -86,5 +87,82 @@ public class LocationManagerTests extends TimerMocks
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(1496, 3040, 0));
 		locationManager.isInAbyss();
 		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_InRadius_NoAnimation()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(1002, 1004, 1));
+		when(player.getAnimation()).thenReturn(0);
+
+		assertTrue(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_InRadius_WithAnimation()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(1002, 1004, 1));
+		when(player.getAnimation()).thenReturn(1);
+
+		assertFalse(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_OutOfRadius_X()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(1020, 1004, 1));
+
+		assertFalse(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_OutOfRadius_Y()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(1002, 800, 1));
+
+		assertFalse(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_OutOfRadius_XY()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(2002, 600, 1));
+
+		assertFalse(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_PlayerIsNull()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		assertFalse(locationManager.hasPlayerLoggedOut(null));
+	}
+
+	@Test
+	public void hasPlayerLoggedOut_PlayerIsNotNull_WorldPointNull()
+	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
+
+		when(player.getWorldLocation()).thenReturn(null);
+
+		assertFalse(locationManager.hasPlayerLoggedOut(player));
 	}
 }

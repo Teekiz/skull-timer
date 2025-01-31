@@ -89,8 +89,9 @@ public class SkullTimerPlugin extends Plugin
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
-		combatManager = new CombatManager(timerManager, config.pvpToggle());
+		combatManager = new CombatManager(timerManager, config);
 		gameTickCounter = 0;
+
 
 		clientThread.invoke(() -> {
 			equipmentManager.updateCurrentEquipment();
@@ -242,22 +243,30 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	//todo - increase accuracy by seeing if they logged out, or just moved away
-	//todo - teleportation
-	//todo - check for world hopping
+	//todo - check for world hopping, teleportation (check) and logged out (check)
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
-		if (playerDespawned.getPlayer() != null && playerDespawned.getPlayer().getName() != null && combatManager.getTargetRecords().containsKey(playerDespawned.getPlayer().getName())){
-			TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName());
+		Player player = playerDespawned.getPlayer();
+		if (player != null && player.getName() != null && combatManager.getTargetRecords().containsKey(player.getName())){
+			String playerName = player.getName();
+			TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerName);
 			if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
-				log.debug("Player {} despawned. Target has been set to dead status.", playerDespawned.getPlayer().getName());
+				log.debug("Player {} despawned. Target has been set to dead status.", playerName);
+			} else if (locationManager.hasPlayerLoggedOut(player)) {
+				if (targetInteraction.hasRetaliated()){
+					log.debug("Player {} has logged out. Target has been set to logged out (retaliated).", playerName);
+					targetInteraction.setCombatStatus(CombatStatus.RETALIATED_LOGGED_OUT);
+				} else {
+					log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
+					targetInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
+				}
 			} else if (targetInteraction.hasRetaliated()){
-				log.debug("Player {} combat status set to retaliated unknown.", playerDespawned.getPlayer().getName());
-				combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.RETALIATED_UNKNOWN);
+				log.debug("Player {} combat status set to retaliated unknown.", playerName);
+				targetInteraction.setCombatStatus(CombatStatus.RETALIATED_UNKNOWN);
 			} else {
-				log.debug("Player {} combat status set to unknown.", playerDespawned.getPlayer().getName());
-				combatManager.getTargetRecords().get(playerDespawned.getPlayer().getName()).setCombatStatus(CombatStatus.UNKNOWN);
+				log.debug("Player {} combat status set to unknown.", playerName);
+				targetInteraction.setCombatStatus(CombatStatus.UNKNOWN);
 			}
 		}
 	}

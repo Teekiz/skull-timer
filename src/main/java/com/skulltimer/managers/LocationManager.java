@@ -46,6 +46,7 @@ public class LocationManager
 	private final TimerManager timerManager;
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
+	private final static int playerRadius = 14;
 
 	/**
 	 * The constructor for a {@link LocationManager} object.
@@ -72,6 +73,27 @@ public class LocationManager
 			hasBeenTeleportedIntoAbyss = false;
 			return false;
 		}
+	}
+
+	/**
+	 * A method to check whether the player matches the conditions to be classified when logged out. (i.e. no animation and within the players expected sight.)
+	 * @param player The {@link Player} whose location is to be checked.
+	 * @return {@code true} if the {@code player} meets the conditions to be considered logging out. {@code false} if they do not.
+	 */
+	public boolean hasPlayerLoggedOut(Player player)
+	{
+		WorldPoint localPlayerWorldPoint = getPlayersLocation();
+
+		if (localPlayerWorldPoint == null || player == null || player.getWorldLocation() == null){
+			return false;
+		}
+
+		WorldPoint playerWorldPoint = player.getWorldLocation();
+
+		WorldPoint radiusPointA = new WorldPoint(localPlayerWorldPoint.getX() + playerRadius, localPlayerWorldPoint.getY() + playerRadius, localPlayerWorldPoint.getPlane());
+		WorldPoint radiusPointB = new WorldPoint(localPlayerWorldPoint.getX() - playerRadius, localPlayerWorldPoint.getY() - playerRadius, localPlayerWorldPoint.getPlane());
+
+		return isInArea(radiusPointA, radiusPointB, playerWorldPoint) && player.getAnimation() == 0;
 	}
 
 	/**

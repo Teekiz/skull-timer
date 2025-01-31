@@ -52,7 +52,8 @@ public class GameTickEventTest extends PluginMocks
 	@Test
 	public void playerSkulledIconHasExpired()
 	{
-		when(timerManager.getTimer()).thenReturn(null);
+		when(timerManager.getTimer()).thenReturn(skulledTimer);
+		when(skulledTimer.getEndTime()).thenReturn(Instant.now().plusSeconds(300));
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		eventBus.post(gameTick);

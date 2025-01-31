@@ -80,7 +80,7 @@ public class CombatManager
 
 				//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
 				if (shouldUpdateTarget(targetInteraction)){
-					log.debug("Player {} already exists in target records. Updating record.", player.getName());
+					log.debug("Player {} already exists in target records. Updating target record to retaliated.", player.getName());
 					targetInteraction.setCombatStatus(CombatStatus.RETALIATED);
 				//if the player is not a target (i.e. record is null), then check if they should be classified as an attacker
 				} else if (shouldUpgradeToAttacker(player)){

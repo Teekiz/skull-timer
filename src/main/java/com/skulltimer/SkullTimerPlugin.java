@@ -152,8 +152,8 @@ public class SkullTimerPlugin extends Plugin
 		gameTickCounter++;
 
 		//if the player does not have a skull icon or the timer has expired
-		if ((timerManager.getTimer() != null && Instant.now().isAfter(timerManager.getTimer().getEndTime())) ||
-			client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE)
+		if (timerManager.getTimer() != null && (Instant.now().isAfter(timerManager.getTimer().getEndTime())
+			|| client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
 		{
 			timerManager.removeTimer(false);
 			config.cautiousTimer(false);
@@ -192,7 +192,6 @@ public class SkullTimerPlugin extends Plugin
 	/*
 		PVP Events - Interaction then animation
 	 */
-	//todo - autoretaliate
 	@Subscribe
 	public void onInteractingChanged(InteractingChanged interactingChanged)
 	{
@@ -244,6 +243,8 @@ public class SkullTimerPlugin extends Plugin
 	}
 
 	//todo - increase accuracy by seeing if they logged out, or just moved away
+	//todo - teleportation
+	//todo - check for world hopping
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{

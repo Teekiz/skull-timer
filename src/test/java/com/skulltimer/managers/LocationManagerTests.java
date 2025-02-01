@@ -96,7 +96,7 @@ public class LocationManagerTests extends TimerMocks
 		when(localPlayer.getWorldLocation()).thenReturn(new WorldPoint(1000, 1000, 1));
 
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(1002, 1004, 1));
-		when(player.getAnimation()).thenReturn(0);
+		when(player.getAnimation()).thenReturn(-1);
 
 		assertTrue(locationManager.hasPlayerLoggedOut(player));
 	}

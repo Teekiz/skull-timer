@@ -93,7 +93,7 @@ public class LocationManager
 		WorldPoint radiusPointA = new WorldPoint(localPlayerWorldPoint.getX() + playerRadius, localPlayerWorldPoint.getY() + playerRadius, localPlayerWorldPoint.getPlane());
 		WorldPoint radiusPointB = new WorldPoint(localPlayerWorldPoint.getX() - playerRadius, localPlayerWorldPoint.getY() - playerRadius, localPlayerWorldPoint.getPlane());
 
-		return isInArea(radiusPointA, radiusPointB, playerWorldPoint) && player.getAnimation() == 0;
+		return isInArea(radiusPointA, radiusPointB, playerWorldPoint) && player.getAnimation() == -1;
 	}
 
 	/**

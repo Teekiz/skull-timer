@@ -243,7 +243,6 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	//todo - check for world hopping, teleportation (check) and logged out (check)
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{

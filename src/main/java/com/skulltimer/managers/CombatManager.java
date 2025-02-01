@@ -25,6 +25,7 @@
 package com.skulltimer.managers;
 
 import com.skulltimer.SkullTimerConfig;
+import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.data.TargetInteraction;
 import com.skulltimer.enums.CombatStatus;
@@ -33,11 +34,13 @@ import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import com.skulltimer.SkulledTimer;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
 
-//todo - write javadocs
-
+/**
+ * An object that is used to manage combat scenarios to determine if a timer is required to be started.
+ */
 @Slf4j
 public class CombatManager
 {
@@ -51,6 +54,11 @@ public class CombatManager
 	@Getter @Setter
 	private boolean isPVPEnabled;
 
+	/**
+	 * The constructor for a {@link CombatManager} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
+	 * @param config The configuration file for the {@link SkullTimerPlugin}.
+	 */
 	public CombatManager(TimerManager timerManager, SkullTimerConfig config)
 	{
 		this.timerManager = timerManager;
@@ -60,6 +68,25 @@ public class CombatManager
 		this.isPVPEnabled = config.pvpToggle();
 	}
 
+	/**
+	 * A method used to assign a {@code player} to the relevant record.
+	 *
+	 * <p>
+	 * There are 3 records that a player could be assigned/upgraded to:
+	 * <ol>
+	 *     <li>If either an animation or interaction occurs on the same tick, a new {@link PlayerInteraction} record will be created and stored.</li>
+	 *     <li>If an {@link PlayerInteraction} has already been created on the same {@code currentTick} value, the player can either be placed in either of the following records:</li>
+	 *     <ol>
+	 *         <li>If the player is a target but they have not retaliated, then their {@code TargetRecord} will be updated to reflect their {@code RETALIATED} status.</li>
+	 *         <li>Otherwise if the player has either been a target but has logged out or they have a skull icon, then their record will be upgraded to attacker.</li>
+	 *     </ol>
+	 * </ol>
+	 * </p>
+	 *
+	 * @param player The {@link Player} who has either interacted with animation has changed.
+	 * @param currentTick The {@link Integer} value representing the current tick number.
+	 * @param isAnimation {@code true} if the change was an animation. Otherwise {@code false}.
+	 */
 	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
 		if (player.getName() == null || player.getName().isEmpty()){
 			return;
@@ -106,17 +133,48 @@ public class CombatManager
 		}
 	}
 
-	//if the person who is attacking the local player has a skull, then it is same to assume they have initiated the fight
+	/**
+	 * A method to determine if the player meets the requirements to be considered an attacker.
+	 * @param player The {@link Player} who is being checked.
+	 * @param targetInteraction The {@link TargetInteraction} record if it exists.
+	 * @return {@code true} if:
+	 * <ol>
+	 *     <li>If the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}.</li>
+	 *     <li>The {@code player} has a {@link SkullIcon} other than {@code NONE}.</li>
+	 * </ol>
+	 * Otherwise, returns {@code false}.
+	 */
 	private boolean shouldUpgradeToAttacker(Player player, TargetInteraction targetInteraction){
+		//if the person who is attacking the local player has a skull, then it is same to assume they have initiated the fight
 		return (targetInteraction != null && targetInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT)
 			|| player.getSkullIcon() != SkullIcon.NONE;
 	}
 
-	//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
+	/**
+	 * A method to determine if the player meets the requirements to be considered an attacker.
+	 * @param targetInteraction The {@link TargetInteraction} record if it exists.
+	 * @return {@code true} if the {@code targetInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
+	 */
 	private boolean shouldUpdateTarget(TargetInteraction targetInteraction){
+		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
 		return targetInteraction != null && !targetInteraction.hasRetaliated();
 	}
 
+	/**
+	 * A method to determine if the requirements are met to start a timer when the local player attacks another player.
+	 *
+	 * <p>
+	 * The following are possible states the interaction could be in to determine if a timer should be started:
+	 * <ol>
+	 *     <li>The {@code player} does not exist in either the {@code attackerRecords} or {@code targetRecords}.</li>
+	 *     <li>The {@code player} exists in the {@code targetRecords} and their {@link CombatStatus} is {@code DEAD}, {@code LOGGED_OUT} or variant of {@code RETALIATED}.</li>
+	 *     <li>The {@code player} {@link CombatStatus} is a variant of {@code UNKNOWN} and the {@code localPlayer}'s {@link SkullIcon} is not {@code NONE}.</li>
+	 * </ol>
+	 * </p>
+	 * @param player The {@link Player} who the hitsplat has been applied to.
+	 * @param localPlayer The {@link Player} who inflected the hitsplat.
+	 * @param currentTick The {@link Integer} value representing the current tick number.
+	 */
 	public void onTargetHitsplat(Player player, Player localPlayer, int currentTick)
 	{
 		if (player.getName() == null || player.getName().isEmpty()){
@@ -164,6 +222,10 @@ public class CombatManager
 		}
 	}
 
+	/**
+	 * A method to determine if a timer should be started.
+	 * @param useCautious a {@link Boolean} value if the timer should be created as a {@code cautious} timer.
+	 */
 	private void addTimerCheck(boolean useCautious)
 	{
 		if (isPVPEnabled){

@@ -26,6 +26,9 @@ package com.skulltimer.data;
 
 import lombok.Data;
 
+/**
+ * An object representing a record of a players interaction with the local player. An interaction could be considered an animation or interaction.
+ */
 @Data
 public class PlayerInteraction
 {

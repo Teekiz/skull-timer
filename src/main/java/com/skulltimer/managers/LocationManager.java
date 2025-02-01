@@ -24,6 +24,7 @@
 
 package com.skulltimer.managers;
 
+import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.WorldAreas;
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 
 /**
- * A class that is used to check a players world location to identify if a skull timer is required.
+ * An object that is used to check a players world location to identify if a skull timer is required.
  */
 @Slf4j
 public class LocationManager
@@ -51,6 +52,7 @@ public class LocationManager
 	/**
 	 * The constructor for a {@link LocationManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
 	public LocationManager(Client client, TimerManager timerManager)
 	{

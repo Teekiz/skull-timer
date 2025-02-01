@@ -27,6 +27,9 @@ package com.skulltimer.data;
 import com.skulltimer.enums.CombatStatus;
 import lombok.Data;
 
+/**
+ * An object representing a record of a targets (a player that the local player has attacked) interaction with the local player.
+ */
 @Data
 public class TargetInteraction
 {
@@ -34,6 +37,11 @@ public class TargetInteraction
 	private int tickNumberOfLastAttack = defaultTickValue;
 	private CombatStatus combatStatus = CombatStatus.DEFAULT;
 
+	/**
+	 * A method to determine if the player has retaliated against the local player.
+	 * @return {@code true} if the players {@link CombatStatus} is either {@code RETALIATED}, {@code RETALIATED_UNKNOWN} or
+	 * {@code RETALIATED_LOGGED_OUT}. Otherwise, returns {@code false}.
+	 */
 	public boolean hasRetaliated()
 	{
 		return combatStatus == CombatStatus.RETALIATED ||

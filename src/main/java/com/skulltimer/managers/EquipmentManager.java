@@ -24,6 +24,7 @@
 
 package com.skulltimer.managers;
 
+import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 
 /**
- * A class that is used to check a players worn equipment to identify if a skull timer is required.
+ * An object that is used to check a players worn equipment to identify if a skull timer is required.
  * <pr> This feature is based on the suggestion and code provided by @juusokarjanlahti (<a href="https://github.com/juusokarjanlahti">GitHub</a>).</pr>
  */
 @Slf4j
@@ -55,6 +56,7 @@ public class EquipmentManager
 	/**
 	 * The constructor for a {@link EquipmentManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
 	public EquipmentManager(Client client, TimerManager timerManager) {
 		this.client = client;

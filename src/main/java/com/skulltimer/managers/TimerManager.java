@@ -35,6 +35,9 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import com.skulltimer.SkullTimerPlugin;
 
+/**
+ * An object that is used to manage the creation and removal of a {@link SkulledTimer} object.
+ */
 @Slf4j
 public class TimerManager
 {

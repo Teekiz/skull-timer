@@ -28,24 +28,24 @@ import com.skulltimer.enums.CombatStatus;
 import lombok.Data;
 
 /**
- * An object representing a record of a targets (a player that the local player has attacked) interaction with the local player.
+ * An object representing a record of a combat (a player that the local player has attacked/been attacked by) interaction with the local player.
  */
 @Data
-public class TargetInteraction
+public class CombatInteraction
 {
 	private static final int defaultTickValue = -1;
 	private int tickNumberOfLastAttack = defaultTickValue;
-	private CombatStatus combatStatus = CombatStatus.DEFAULT;
+	private CombatStatus combatStatus = CombatStatus.ATTACKED;
 
 	/**
 	 * A method to determine if the player has retaliated against the local player.
-	 * @return {@code true} if the players {@link CombatStatus} is either {@code RETALIATED}, {@code RETALIATED_UNKNOWN} or
-	 * {@code RETALIATED_LOGGED_OUT}. Otherwise, returns {@code false}.
+	 * @return {@code true} if the players {@link CombatStatus} is either {@code RETALIATED}, {@code INACTIVE} or
+	 * {@code ATTACKER}. Otherwise, returns {@code false}.
 	 */
 	public boolean hasRetaliated()
 	{
 		return combatStatus == CombatStatus.RETALIATED ||
-			combatStatus == CombatStatus.RETALIATED_UNKNOWN ||
-			combatStatus == CombatStatus.RETALIATED_LOGGED_OUT;
+			combatStatus == CombatStatus.INACTIVE ||
+			combatStatus == CombatStatus.ATTACKER;
 	}
 }

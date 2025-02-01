@@ -1,6 +1,6 @@
 package com.skulltimer.events;
 
-import com.skulltimer.data.TargetInteraction;
+import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.mocks.PluginMocks;
 import java.util.HashMap;
@@ -25,9 +25,9 @@ public class PlayerDespawnedEventTest extends PluginMocks
 	@Mock
 	Player player;
 	@Mock
-	HashMap<String, TargetInteraction> targetRecords;
+	HashMap<String, CombatInteraction> targetRecords;
 	@Mock
-	TargetInteraction targetInteraction;
+	CombatInteraction combatInteraction;
 
 	@BeforeEach
 	public void startUp() throws NoSuchFieldException
@@ -35,7 +35,7 @@ public class PlayerDespawnedEventTest extends PluginMocks
 		super.startUp();
 		when(playerDespawned.getPlayer()).thenReturn(player);
 		when(player.getName()).thenReturn("Player");
-		when(combatManager.getTargetRecords()).thenReturn(targetRecords);
+		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 	}
 
 	@Test
@@ -50,8 +50,8 @@ public class PlayerDespawnedEventTest extends PluginMocks
 	public void playerWasInRecords_PlayerHasDied()
 	{
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
-		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEAD);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
+		when(combatInteraction.getCombatStatus()).thenReturn(CombatStatus.DEAD);
 
 		eventBus.post(playerDespawned);
 		verifyNoMoreInteractions(combatManager);
@@ -61,49 +61,46 @@ public class PlayerDespawnedEventTest extends PluginMocks
 	public void playerWasInRecords_PlayerHasRetaliated()
 	{
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
-		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.RETALIATED);
-		when(targetInteraction.hasRetaliated()).thenReturn(true);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
+		when(combatInteraction.getCombatStatus()).thenReturn(CombatStatus.RETALIATED);
+		when(combatInteraction.hasRetaliated()).thenReturn(true);
 
 		eventBus.post(playerDespawned);
-		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.RETALIATED_UNKNOWN);
+		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.INACTIVE);
 	}
 
 	@Test
 	public void playerWasInRecords_PlayerHasNotRetaliated_PlayerIsAlive()
 	{
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
-		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEFAULT);
-		when(targetInteraction.hasRetaliated()).thenReturn(false);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
+		when(combatInteraction.getCombatStatus()).thenReturn(CombatStatus.ATTACKED);
+		when(combatInteraction.hasRetaliated()).thenReturn(false);
 
 		eventBus.post(playerDespawned);
-		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.UNKNOWN);
+		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.UNKNOWN);
 	}
 
 	@Test
 	public void playerLoggedOut_hasNotRetaliated()
 	{
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
-		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEFAULT);
-		when(targetInteraction.hasRetaliated()).thenReturn(false);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
+		when(combatInteraction.getCombatStatus()).thenReturn(CombatStatus.ATTACKED);
 		when(locationManager.hasPlayerLoggedOut(player)).thenReturn(true);
 
 		eventBus.post(playerDespawned);
-		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.LOGGED_OUT);
+		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.LOGGED_OUT);
 	}
 
 	@Test
 	public void playerLoggedOut_hasRetaliated()
 	{
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
-		when(targetInteraction.getCombatStatus()).thenReturn(CombatStatus.DEFAULT);
-		when(targetInteraction.hasRetaliated()).thenReturn(true);
-		when(locationManager.hasPlayerLoggedOut(player)).thenReturn(true);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
+		when(combatInteraction.hasRetaliated()).thenReturn(true);
 
 		eventBus.post(playerDespawned);
-		verify(combatManager.getTargetRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.RETALIATED_LOGGED_OUT);
+		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.INACTIVE);
 	}
 }

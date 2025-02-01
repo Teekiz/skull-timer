@@ -27,7 +27,7 @@ package com.skulltimer.managers;
 import com.skulltimer.SkullTimerConfig;
 import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.data.PlayerInteraction;
-import com.skulltimer.data.TargetInteraction;
+import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import java.util.HashMap;
@@ -46,9 +46,7 @@ public class CombatManager
 {
 	private final TimerManager timerManager;
 	@Getter
-	private final HashMap<String, Integer> attackerRecords;
-	@Getter
-	private final HashMap<String, TargetInteraction> targetRecords;
+	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
 	private final HashMap<String, PlayerInteraction> interactionRecords;
 	@Getter @Setter
@@ -62,8 +60,7 @@ public class CombatManager
 	public CombatManager(TimerManager timerManager, SkullTimerConfig config)
 	{
 		this.timerManager = timerManager;
-		this.attackerRecords = new HashMap<>();
-		this.targetRecords = new HashMap<>();
+		this.combatRecords = new HashMap<>();
 		this.interactionRecords = new HashMap<>();
 		this.isPVPEnabled = config.pvpToggle();
 	}
@@ -92,13 +89,6 @@ public class CombatManager
 			return;
 		}
 
-		//if the attacker record already contains the player, update that instead
-		if (attackerRecords.containsKey(player.getName())) {
-			log.debug("Player {} already exists in attacker records. Updating existing record.", player.getName());
-			attackerRecords.put(player.getName(), currentTick);
-			return;
-		}
-
 		//if the interaction has already occurred, just update the interaction record
 		PlayerInteraction interaction = interactionRecords.get(player.getName());
 
@@ -106,16 +96,21 @@ public class CombatManager
 			if ((isAnimation && interaction.getTickNumberOfLastInteraction() == currentTick) ||
 				(!isAnimation && interaction.getTickNumberOfLastAnimation() == currentTick)){
 
-				TargetInteraction targetInteraction = targetRecords.get(player.getName());
+				CombatInteraction combatInteraction = combatRecords.get(player.getName());
 
 				//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
-				if (shouldUpdateTarget(targetInteraction)){
+				if (shouldUpdateTarget(combatInteraction)){
 					log.debug("Player {} already exists in target records. Updating target record to retaliated.", player.getName());
-					targetInteraction.setCombatStatus(CombatStatus.RETALIATED);
+					combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
 				//if the player is not a target (i.e. record is null), then check if they should be classified as an attacker
-				} else if (shouldUpgradeToAttacker(player, targetInteraction)){
+				} else if (shouldUpgradeToAttacker(player, combatInteraction)){
 					log.debug("Player {} exists in interaction records. Upgrading to attacker.", player.getName());
-					attackerRecords.put(player.getName(), currentTick);
+					combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+				//if the player does not already exist in the records, create a new record.
+				} else {
+					combatInteraction = new CombatInteraction();
+					combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+					combatRecords.put(player.getName(), combatInteraction);
 				}
 			}
 			interactionRecords.remove(player.getName());
@@ -136,28 +131,22 @@ public class CombatManager
 	/**
 	 * A method to determine if the player meets the requirements to be considered an attacker.
 	 * @param player The {@link Player} who is being checked.
-	 * @param targetInteraction The {@link TargetInteraction} record if it exists.
-	 * @return {@code true} if:
-	 * <ol>
-	 *     <li>If the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}.</li>
-	 *     <li>The {@code player} has a {@link SkullIcon} other than {@code NONE}.</li>
-	 * </ol>
-	 * Otherwise, returns {@code false}.
+	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
+	 * @return {@code true} if the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}. Otherwise, returns {@code false}.
 	 */
-	private boolean shouldUpgradeToAttacker(Player player, TargetInteraction targetInteraction){
-		//if the person who is attacking the local player has a skull, then it is same to assume they have initiated the fight
-		return (targetInteraction != null && targetInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT)
-			|| player.getSkullIcon() != SkullIcon.NONE;
+	private boolean shouldUpgradeToAttacker(Player player, CombatInteraction combatInteraction){
+		//if the player had previously logged out, then
+		return combatInteraction != null && combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT;
 	}
 
 	/**
 	 * A method to determine if the player meets the requirements to be considered an attacker.
-	 * @param targetInteraction The {@link TargetInteraction} record if it exists.
-	 * @return {@code true} if the {@code targetInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
+	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
+	 * @return {@code true} if the {@code combatInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
 	 */
-	private boolean shouldUpdateTarget(TargetInteraction targetInteraction){
+	private boolean shouldUpdateTarget(CombatInteraction combatInteraction){
 		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
-		return targetInteraction != null && !targetInteraction.hasRetaliated();
+		return combatInteraction != null && !combatInteraction.hasRetaliated();
 	}
 
 	/**
@@ -181,42 +170,39 @@ public class CombatManager
 			return;
 		}
 
-		if (!attackerRecords.containsKey(player.getName()) && !targetRecords.containsKey(player.getName())) {
+		if (!combatRecords.containsKey(player.getName())) {
 			log.debug("Target record created for player {}.", player.getName());
-			TargetInteraction targetInteraction = new TargetInteraction();
-			targetInteraction.setTickNumberOfLastAttack(currentTick);
-			targetRecords.put(player.getName(), targetInteraction);
+			CombatInteraction combatInteraction = new CombatInteraction();
+			combatInteraction.setTickNumberOfLastAttack(currentTick);
+			combatRecords.put(player.getName(), combatInteraction);
 			addTimerCheck(false);
 			return;
 		}
 
-		TargetInteraction targetInteraction = targetRecords.get(player.getName());
-		if (targetInteraction == null){
-			return;
-		}
+		CombatInteraction combatInteraction = combatRecords.get(player.getName());
 
 		//if the player has died at some point, even if they had retaliated, start a new timer
-		if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
+		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
 			log.debug("Player {} was previously killed. Starting timer.", player.getName());
-			targetInteraction.setCombatStatus(CombatStatus.DEFAULT);
+			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
 			addTimerCheck(false);
 		}
 
 		//if the player has logged out at some point - the player can't attack them unless they retaliated
-		else if (targetInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT) {
+		else if (combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT) {
 			log.debug("Player {} was previously logged out. Starting timer.", player.getName());
-			targetInteraction.setCombatStatus(CombatStatus.DEFAULT);
+			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
 			addTimerCheck(false);
 		}
 
 		//if the player has moved away from the player, set the status to unknown, as the timer will now possibly be out of sync
-		else if (targetInteraction.getCombatStatus() == CombatStatus.UNKNOWN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
+		else if (combatInteraction.getCombatStatus() == CombatStatus.UNKNOWN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
 			log.debug("Player {} is unknown but {} has skull. Starting timer.", player.getName(), localPlayer.getName());
 			addTimerCheck(true);
 		}
 
 		//if the target has retaliated at any point during the fight, then a new timer will not be started
-		else if (!targetInteraction.hasRetaliated()) {
+		else if (!combatInteraction.hasRetaliated()) {
 			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
 			addTimerCheck(false);
 		}
@@ -231,5 +217,14 @@ public class CombatManager
 		if (isPVPEnabled){
 			timerManager.addTimer(TimerDurations.PVP_DURATION.getDuration(), useCautious);
 		}
+	}
+
+	/**
+	 * A method used to clear the combat records of people who attacked the local player.
+	 */
+	public void clearAttackerRecords()
+	{
+		log.debug("Clearing combat records for all attackers.");
+		combatRecords.entrySet().removeIf(entry -> entry.getValue().getCombatStatus() == CombatStatus.ATTACKER);
 	}
 }

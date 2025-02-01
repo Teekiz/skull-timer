@@ -24,7 +24,7 @@
 package com.skulltimer;
 
 import com.google.inject.Provides;
-import com.skulltimer.data.TargetInteraction;
+import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.managers.CombatManager;
@@ -126,7 +126,7 @@ public class SkullTimerPlugin extends Plugin
 		{
 			log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
 			timerManager.removeTimer(true);
-			combatManager.getAttackerRecords().clear();
+			combatManager.clearAttackerRecords();
 		}
 	}
 
@@ -247,26 +247,25 @@ public class SkullTimerPlugin extends Plugin
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
 		Player player = playerDespawned.getPlayer();
-		if (player != null && player.getName() != null && combatManager.getTargetRecords().containsKey(player.getName())){
-			String playerName = player.getName();
-			TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerName);
-			if (targetInteraction.getCombatStatus() == CombatStatus.DEAD){
-				log.debug("Player {} despawned. Target has been set to dead status.", playerName);
-			} else if (locationManager.hasPlayerLoggedOut(player)) {
-				if (targetInteraction.hasRetaliated()){
-					log.debug("Player {} has logged out. Target has been set to logged out (retaliated).", playerName);
-					targetInteraction.setCombatStatus(CombatStatus.RETALIATED_LOGGED_OUT);
-				} else {
-					log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
-					targetInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
-				}
-			} else if (targetInteraction.hasRetaliated()){
-				log.debug("Player {} combat status set to retaliated unknown.", playerName);
-				targetInteraction.setCombatStatus(CombatStatus.RETALIATED_UNKNOWN);
-			} else {
-				log.debug("Player {} combat status set to unknown.", playerName);
-				targetInteraction.setCombatStatus(CombatStatus.UNKNOWN);
-			}
+
+		if (player == null || player.getName() == null || !combatManager.getCombatRecords().containsKey(player.getName())) {
+			return;
+		}
+
+		String playerName = player.getName();
+		CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
+
+		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
+			log.debug("Player {} despawned. Target has been set to dead status.", playerName);
+		} else if (combatInteraction.hasRetaliated()) {
+			log.debug("Player {} was in combat. Target has been set to inactive.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.INACTIVE);
+		} else if (locationManager.hasPlayerLoggedOut(player)){
+			log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
+		}  else {
+			log.debug("Player {} combat status set to unknown.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.UNKNOWN);
 		}
 	}
 
@@ -279,14 +278,13 @@ public class SkullTimerPlugin extends Plugin
 			//if the local player is the one who is killed, then remove all attacker logs (as this is reset)
 			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName())){
 				log.debug("Player {} has died, resetting attacker and target records.", playerName);
-				combatManager.getAttackerRecords().clear();
-				combatManager.getTargetRecords().clear();
+				combatManager.getCombatRecords().clear();
 			//if the player has killed their target, update their status
-			} else if (combatManager.getTargetRecords().containsKey(playerName)) {
+			} else if (combatManager.getCombatRecords().containsKey(playerName)) {
 				log.debug("Player {} has died, updating combat status to dead.", playerName);
-				TargetInteraction targetInteraction = combatManager.getTargetRecords().get(playerName);
-				if (targetInteraction != null){
-					targetInteraction.setCombatStatus(CombatStatus.DEAD);
+				CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
+				if (combatInteraction != null){
+					combatInteraction.setCombatStatus(CombatStatus.DEAD);
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 package com.skulltimer.events;
 
-import com.skulltimer.data.TargetInteraction;
+import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.mocks.PluginMocks;
 import java.util.HashMap;
@@ -29,11 +29,9 @@ public class ActorDeathEventTest extends PluginMocks
 	@Mock
 	NPC npc;
 	@Mock
-	HashMap<String, TargetInteraction> targetRecords;
+	HashMap<String, CombatInteraction> targetRecords;
 	@Mock
-	HashMap<String, Integer> attackerRecords;
-	@Mock
-	TargetInteraction targetInteraction;
+	CombatInteraction combatInteraction;
 
 	@Test
 	public void npcDied()
@@ -58,12 +56,10 @@ public class ActorDeathEventTest extends PluginMocks
 		when(actorDeath.getActor()).thenReturn(localPlayer);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-		when(combatManager.getTargetRecords()).thenReturn(targetRecords);
-		when(combatManager.getAttackerRecords()).thenReturn(attackerRecords);
+		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 
 		eventBus.post(actorDeath);
 		verify(targetRecords, times(1)).clear();
-		verify(attackerRecords, times(1)).clear();
 	}
 
 	@Test
@@ -73,12 +69,12 @@ public class ActorDeathEventTest extends PluginMocks
 		when(player.getName()).thenReturn("Player");
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-		when(combatManager.getTargetRecords()).thenReturn(targetRecords);
+		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 		when(targetRecords.containsKey("Player")).thenReturn(true);
-		when(targetRecords.get("Player")).thenReturn(targetInteraction);
+		when(targetRecords.get("Player")).thenReturn(combatInteraction);
 
 		eventBus.post(actorDeath);
-		verify(targetInteraction, times(1)).setCombatStatus(CombatStatus.DEAD);
+		verify(combatInteraction, times(1)).setCombatStatus(CombatStatus.DEAD);
 	}
 
 	@Test
@@ -88,11 +84,11 @@ public class ActorDeathEventTest extends PluginMocks
 		when(player.getName()).thenReturn("Player");
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-		when(combatManager.getTargetRecords()).thenReturn(targetRecords);
+		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 		when(targetRecords.containsKey("Player")).thenReturn(false);
 
 		eventBus.post(actorDeath);
-		verifyNoInteractions(targetInteraction);
+		verifyNoInteractions(combatInteraction);
 	}
 
 	@Test
@@ -102,11 +98,11 @@ public class ActorDeathEventTest extends PluginMocks
 		when(player.getName()).thenReturn("Player");
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-		when(combatManager.getTargetRecords()).thenReturn(targetRecords);
+		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 		when(targetRecords.containsKey("Player")).thenReturn(true);
 		when(targetRecords.get("Player")).thenReturn(null);
 
 		eventBus.post(actorDeath);
-		verifyNoInteractions(targetInteraction);
+		verifyNoInteractions(combatInteraction);
 	}
 }

@@ -265,7 +265,7 @@ public class SkullTimerPlugin extends Plugin
 			combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
 		}  else {
 			log.debug("Player {} combat status set to unknown.", playerName);
-			combatInteraction.setCombatStatus(CombatStatus.UNKNOWN);
+			combatInteraction.setCombatStatus(CombatStatus.UNCERTAIN);
 		}
 	}
 

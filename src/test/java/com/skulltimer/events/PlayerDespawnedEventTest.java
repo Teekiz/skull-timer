@@ -78,7 +78,7 @@ public class PlayerDespawnedEventTest extends PluginMocks
 		when(combatInteraction.hasRetaliated()).thenReturn(false);
 
 		eventBus.post(playerDespawned);
-		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.UNKNOWN);
+		verify(combatManager.getCombatRecords().get("Player"), times(1)).setCombatStatus(CombatStatus.UNCERTAIN);
 	}
 
 	@Test

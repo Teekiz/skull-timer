@@ -196,7 +196,7 @@ public class CombatManager
 		}
 
 		//if the player has moved away from the player, set the status to unknown, as the timer will now possibly be out of sync
-		else if (combatInteraction.getCombatStatus() == CombatStatus.UNKNOWN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
+		else if (combatInteraction.getCombatStatus() == CombatStatus.UNCERTAIN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
 			log.debug("Player {} is unknown but {} has skull. Starting timer.", player.getName(), localPlayer.getName());
 			addTimerCheck(true);
 		}

@@ -110,7 +110,7 @@ public class CombatManagerTests extends TimerMocks
 	public void testUnprovokedAttackOnOtherPlayer_WithPlayerBeingSetToCautious()
 	{
 		CombatInteraction interaction = new CombatInteraction();
-		interaction.setCombatStatus(CombatStatus.UNKNOWN);
+		interaction.setCombatStatus(CombatStatus.UNCERTAIN);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), true);
@@ -122,7 +122,7 @@ public class CombatManagerTests extends TimerMocks
 		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
 
 		CombatInteraction interaction = new CombatInteraction();
-		interaction.setCombatStatus(CombatStatus.UNKNOWN);
+		interaction.setCombatStatus(CombatStatus.UNCERTAIN);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), true);

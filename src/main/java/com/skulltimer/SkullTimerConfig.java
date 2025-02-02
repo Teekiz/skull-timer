@@ -73,14 +73,14 @@ public interface SkullTimerConfig extends Config
 	@ConfigItem(
 		keyName = "pvpToggle",
 		name="Enable PVP timer",
-		description = "Toggles the timer to track PVP skulls.",
+		description = "Toggles the plugin to track PVP skulls.",
 		section = experimental
 	)
 	default boolean pvpToggle() {return true;}
 
 	@ConfigItem(
 		keyName = "cautiousTimerToggle",
-		name="Enable cautious timer",
+		name="Enable uncertain timer",
 		description = "Toggles whether the timer should appear differently if the plugin is unable to determine if the timer is accurate.",
 		section = experimental
 	)
@@ -88,7 +88,7 @@ public interface SkullTimerConfig extends Config
 
 	@ConfigItem(
 		keyName = "textColourCautious",
-		name="Text Colour (Cautious)",
+		name="Text Colour (uncertain)",
 		description = "The colour of the countdown text displayed on the timer when the timer is unsure of its accuracy.",
 		section = experimental
 	)
@@ -96,7 +96,7 @@ public interface SkullTimerConfig extends Config
 
 	@ConfigItem(
 		keyName = "warningTextColourCautious",
-		name="Warning Text Colour (Cautious)",
+		name="Warning Text Colour (uncertain)",
 		description = "The colour of the countdown text displayed on the timer when the timer is unsure of its accuracy.",
 		section = experimental
 	)

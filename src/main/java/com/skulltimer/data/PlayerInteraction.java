@@ -47,4 +47,16 @@ public class PlayerInteraction
 			tickNumberOfLastInteraction = tick;
 		}
 	}
+
+	/**
+	 * A method used to determine if an interaction has occurred on the same tick.
+	 * @return {@code true} if the animation and interaction occur on the same tick number and the tick value set is not -1.
+	 * Returns {@code false} if one or more of those conditions are not met.
+	 */
+	public boolean hasInteractionAndAnimationOccurredOnTheSameTick()
+	{
+		return tickNumberOfLastInteraction != -1
+			&& tickNumberOfLastAnimation != -1
+			&& tickNumberOfLastInteraction == tickNumberOfLastAnimation;
+	}
 }

@@ -126,7 +126,7 @@ public class SkullTimerPlugin extends Plugin
 		{
 			log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
 			timerManager.removeTimer(true);
-			combatManager.clearAttackerRecords();
+			combatManager.clearRecords();
 		}
 	}
 

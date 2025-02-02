@@ -224,4 +224,19 @@ public class CombatManagerTests extends TimerMocks
 
 		assertFalse(combatInteraction.hasRetaliated());
 	}
+
+	@Test
+	public void unprovokedAttack_ThenRetaliated_WithDefenceAnimation()
+	{
+		//initial attack
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+		combatManager.onAnimationOrInteractionChange(player, tickCounter++, true);
+		//simulated response
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
+		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		//final attack
+		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
+
+		assertEquals(CombatStatus.RETALIATED, combatManager.getCombatRecords().get("PlayerOne").getCombatStatus());
+	}
 }

@@ -85,66 +85,84 @@ public class CombatManager
 	 * @param isAnimation {@code true} if the change was an animation. Otherwise {@code false}.
 	 */
 	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
-		if (player.getName() == null || player.getName().isEmpty()){
+		if (player == null || player.getName() == null || player.getName().isEmpty()){
 			return;
 		}
 
 		//if the interaction has already occurred, just update the interaction record
-		PlayerInteraction interaction = interactionRecords.get(player.getName());
+		String playerName = player.getName();
+		PlayerInteraction interaction = interactionRecords.get(playerName);
 
-		if (interaction != null){
-			if ((isAnimation && interaction.getTickNumberOfLastInteraction() == currentTick) ||
-				(!isAnimation && interaction.getTickNumberOfLastAnimation() == currentTick)){
-
-				CombatInteraction combatInteraction = combatRecords.get(player.getName());
-
-				//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
-				if (shouldUpdateTarget(combatInteraction)){
-					log.debug("Player {} already exists in target records. Updating target record to retaliated.", player.getName());
-					combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
-				//if the player is not a target (i.e. record is null), then check if they should be classified as an attacker
-				} else if (shouldUpgradeToAttacker(player, combatInteraction)){
-					log.debug("Player {} exists in interaction records. Upgrading to attacker.", player.getName());
-					combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
-				//if the player does not already exist in the records, create a new record.
-				} else {
-					combatInteraction = new CombatInteraction();
-					combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
-					combatRecords.put(player.getName(), combatInteraction);
-				}
-			}
-			interactionRecords.remove(player.getName());
-		} else {
-			log.debug("New interaction record created for player {}.", player.getName());
+		if (interaction == null){
+			log.debug("New interaction record created for player {}.", playerName);
 			interaction = new PlayerInteraction();
-			interactionRecords.put(player.getName(), interaction);
-			if (isAnimation){
-				log.debug("isAnimation: (Name: {}).", player.getName());
-				interaction.setAnimationTick(currentTick);
-			} else {
-				log.debug("isInteraction: (Name: {}).", player.getName());
-				interaction.setInteractionTick(currentTick);
+			interactionRecords.put(playerName, interaction);
+		}
+
+		updateInteractionRecord(interaction, currentTick, isAnimation, playerName);
+
+		if (interaction.hasInteractionAndAnimationOccurredOnTheSameTick()){
+
+			CombatInteraction combatInteraction = combatRecords.get(playerName);
+
+			//if the player does not already exist in the records, create a new record.
+			if (combatInteraction == null){
+				combatInteraction = new CombatInteraction();
+				combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+				combatRecords.put(playerName, combatInteraction);
 			}
+
+			//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
+			if (shouldSetStatusToRetaliated(combatInteraction)){
+				log.debug("Player {} already exists in target records. Updating target record to retaliated.", playerName);
+				combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
+				//if the player is not a target then check if they should be classified as an attacker
+			} else if (shouldSetStatusToAttacker(combatInteraction)){
+				log.debug("Player {} exists in interaction records. Upgrading to attacker.", playerName);
+				combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+			}
+			interactionRecords.remove(playerName);
+		}
+	}
+
+	/**
+	 * A method used to update the interaction record for {@code playerName}.
+	 * @param playerInteraction The record to be updated.
+	 * @param currentTick The tick number that the update is occurring on.
+	 * @param isAnimation Whether the animation or interaction tick will be updated.
+	 * @param playerName The name of the player associated with this record.
+	 */
+	private void updateInteractionRecord(PlayerInteraction playerInteraction, int currentTick, boolean isAnimation, String playerName)
+	{
+		if (playerInteraction == null){
+			return;
+		}
+
+		log.debug("Updating {} record for: {}.", isAnimation ? "animation" : "interaction", playerName);
+
+		if (isAnimation){
+			playerInteraction.setAnimationTick(currentTick);
+		} else {
+			playerInteraction.setInteractionTick(currentTick);
 		}
 	}
 
 	/**
 	 * A method to determine if the player meets the requirements to be considered an attacker.
-	 * @param player The {@link Player} who is being checked.
 	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
 	 * @return {@code true} if the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}. Otherwise, returns {@code false}.
 	 */
-	private boolean shouldUpgradeToAttacker(Player player, CombatInteraction combatInteraction){
+	private boolean shouldSetStatusToAttacker(CombatInteraction combatInteraction){
 		//if the player had previously logged out, then
 		return combatInteraction != null && combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT;
 	}
 
 	/**
-	 * A method to determine if the player meets the requirements to be considered an attacker.
+	 * A method to determine if the player meets the requirements to be set to the retaliated status.
 	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
 	 * @return {@code true} if the {@code combatInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
 	 */
-	private boolean shouldUpdateTarget(CombatInteraction combatInteraction){
+	private boolean shouldSetStatusToRetaliated(CombatInteraction combatInteraction){
 		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
 		return combatInteraction != null && !combatInteraction.hasRetaliated();
 	}
@@ -222,9 +240,10 @@ public class CombatManager
 	/**
 	 * A method used to clear the combat records of people who attacked the local player.
 	 */
-	public void clearAttackerRecords()
+	public void clearRecords()
 	{
-		log.debug("Clearing combat records for all attackers.");
-		combatRecords.entrySet().removeIf(entry -> entry.getValue().getCombatStatus() == CombatStatus.ATTACKER);
+		log.debug("Clearing records.");
+		combatRecords.clear();
+		interactionRecords.clear();
 	}
 }

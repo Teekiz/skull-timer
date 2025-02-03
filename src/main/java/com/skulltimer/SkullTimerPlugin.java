@@ -30,8 +30,11 @@ import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
+import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -81,17 +84,19 @@ public class SkullTimerPlugin extends Plugin
 	private LocationManager locationManager;
 	private TimerManager timerManager;
 	private CombatManager combatManager;
+	private StatusManager statusManager;
 	private int gameTickCounter;
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		timerManager = new TimerManager(this, config, infoBoxManager, itemManager);
+		statusManager = new StatusManager(client);
+		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
 		combatManager = new CombatManager(timerManager, config);
-		gameTickCounter = 0;
 
+		gameTickCounter = 0;
 
 		clientThread.invoke(() -> {
 			equipmentManager.updateCurrentEquipment();
@@ -122,10 +127,12 @@ public class SkullTimerPlugin extends Plugin
 			equipmentManager.updateCurrentEquipment();
 		}
 		//logged out or hopping - stop timer
-		else if ((gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING) && timerManager.getTimer() != null)
+		else if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING)
 		{
-			log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
-			timerManager.removeTimer(true);
+			if (timerManager.getTimer() != null){
+				log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
+				timerManager.removeTimer(true);
+			}
 			combatManager.clearRecords();
 		}
 	}
@@ -151,19 +158,20 @@ public class SkullTimerPlugin extends Plugin
 	public void onGameTick(GameTick gameTick)
 	{
 		gameTickCounter++;
-
-		if (timerManager.getTimer() == null){
-			return;
-		}
+		statusManager.checkSkulledStatus();
 
 		SkulledTimer skulledTimer = timerManager.getTimer();
-		boolean playerHasNoSkullIcon  = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
+		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
+
+		if (skulledTimer == null){
+			return;
+		}
 
 		//if the player does not have a skull icon or the timer has expired
 		if (Instant.now().isAfter(skulledTimer.getEndTime())) {
 			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
-		} else if (playerHasNoSkullIcon ){
-			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {}.", skulledTimer.getRemainingTime());
+		} else if (playerHasNoSkullIcon){
+			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
 		} else {
 			return;
 		}
@@ -288,8 +296,8 @@ public class SkullTimerPlugin extends Plugin
 			String playerName = actorDeath.getActor().getName();
 			//if the local player is the one who is killed, then remove all attacker logs (as this is reset)
 			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName())){
-				log.debug("Player {} has died, resetting attacker and target records.", playerName);
-				combatManager.getCombatRecords().clear();
+				log.debug("Player {} has died, resetting combat records.", playerName);
+				combatManager.clearRecords();
 			//if the player has killed their target, update their status
 			} else if (combatManager.getCombatRecords().containsKey(playerName)) {
 				log.debug("Player {} has died, updating combat status to dead.", playerName);

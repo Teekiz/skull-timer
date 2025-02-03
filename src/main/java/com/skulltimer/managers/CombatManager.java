@@ -224,6 +224,11 @@ public class CombatManager
 			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
 			addTimerCheck(false);
 		}
+
+		else
+		{
+			log.debug("Timer will not be started. {}'s combat status: {}.", player.getName(), combatInteraction.getCombatStatus());
+		}
 	}
 
 	/**

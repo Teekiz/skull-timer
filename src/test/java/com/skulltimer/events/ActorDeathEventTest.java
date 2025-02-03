@@ -56,10 +56,9 @@ public class ActorDeathEventTest extends PluginMocks
 		when(actorDeath.getActor()).thenReturn(localPlayer);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-		when(combatManager.getCombatRecords()).thenReturn(targetRecords);
 
 		eventBus.post(actorDeath);
-		verify(targetRecords, times(1)).clear();
+		verify(combatManager, times(1)).clearRecords();
 	}
 
 	@Test

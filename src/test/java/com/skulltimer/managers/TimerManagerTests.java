@@ -98,7 +98,7 @@ public class TimerManagerTests extends TimerMocks
 	{
 		timerManager.addTimer(Duration.ofMinutes(12), false);
 		timerManager.removeTimer(true);
-		verify(config, times(1)).skullDuration(any(Duration.class));
+		verify(config, times(2)).skullDuration(any(Duration.class));
 		verify(config, times(2)).cautiousTimer(false);
 	}
 
@@ -107,7 +107,7 @@ public class TimerManagerTests extends TimerMocks
 	{
 		timerManager.addTimer(Duration.ofMinutes(3), true);
 		timerManager.removeTimer(true);
-		verify(config, times(1)).skullDuration(any(Duration.class));
+		verify(config, times(2)).skullDuration(any(Duration.class));
 		verify(config, times(1)).cautiousTimer(true);
 	}
 
@@ -116,7 +116,7 @@ public class TimerManagerTests extends TimerMocks
 	{
 		timerManager.addTimer(Duration.ofMinutes(30), false);
 		timerManager.removeTimer(false);
-		verify(config, times(2)).skullDuration();
+		verify(config, times(2)).skullDuration(Duration.ZERO);
 		verify(config, times(2)).cautiousTimer(false);
 	}
 
@@ -125,7 +125,7 @@ public class TimerManagerTests extends TimerMocks
 	{
 		timerManager.addTimer(Duration.ofMinutes(6), true);
 		timerManager.removeTimer(false);
-		verify(config, times(2)).skullDuration();
+		verify(config, times(2)).skullDuration(Duration.ZERO);
 		verify(config, times(1)).cautiousTimer(true);
 	}
 }

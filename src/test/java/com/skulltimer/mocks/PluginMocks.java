@@ -6,6 +6,7 @@ import com.skulltimer.SkulledTimer;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
+import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import net.runelite.api.Client;
 import net.runelite.client.callback.ClientThread;
@@ -39,6 +40,8 @@ public class PluginMocks
 	protected EquipmentManager equipmentManager;
 	@Mock
 	protected CombatManager combatManager;
+	@Mock
+	protected StatusManager statusManager;
 	@Mock
 	protected SkulledTimer skulledTimer;
 

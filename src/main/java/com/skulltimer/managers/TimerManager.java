@@ -49,6 +49,7 @@ public class TimerManager
 	private final ItemManager itemManager;
 	@Inject
 	private final SkullTimerPlugin skullTimerPlugin;
+	private final StatusManager statusManager;
 	@Getter
 	private SkulledTimer timer;
 
@@ -58,14 +59,16 @@ public class TimerManager
 	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param infoBoxManager Runelite's {@link InfoBoxManager} object.
 	 * @param itemManager Runelite's {@link ItemManager} object.
+	 * @param statusManager A manager for tracking the players skulled duration.
 	 *
 	 */
-	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager)
+	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager)
 	{
 		this.skullTimerPlugin = skullTimerPlugin;
 		this.config = config;
 		this.infoBoxManager = infoBoxManager;
 		this.itemManager = itemManager;
+		this.statusManager = statusManager;
 	}
 
 	/**
@@ -91,6 +94,7 @@ public class TimerManager
 					timer.setTooltip("Time left until your character becomes unskulled.");
 
 				}
+				statusManager.setTimerEndTime(timer.getEndTime());
 				infoBoxManager.addInfoBox(timer);
 				log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
 			}
@@ -113,7 +117,7 @@ public class TimerManager
 			config.skullDuration(timer.getRemainingTime());
 			config.cautiousTimer(timer != null && timer.isCautious());
 		} else {
-			config.skullDuration();
+			config.skullDuration(Duration.ZERO);
 			config.cautiousTimer(timer != null && timer.isCautious());
 		}
 

@@ -44,6 +44,8 @@ public class GameTickEventTest extends PluginMocks
 	@Test
 	public void timerHasExpired()
 	{
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.SKULL);
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().minusSeconds(1));
 		eventBus.post(gameTick);
 		verify(timerManager, times(1)).removeTimer(false);

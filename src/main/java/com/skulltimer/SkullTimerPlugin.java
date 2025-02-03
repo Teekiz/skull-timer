@@ -152,13 +152,24 @@ public class SkullTimerPlugin extends Plugin
 	{
 		gameTickCounter++;
 
-		//if the player does not have a skull icon or the timer has expired
-		if (timerManager.getTimer() != null && (Instant.now().isAfter(timerManager.getTimer().getEndTime())
-			|| client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE))
-		{
-			timerManager.removeTimer(false);
-			config.cautiousTimer(false);
+		if (timerManager.getTimer() == null){
+			return;
 		}
+
+		SkulledTimer skulledTimer = timerManager.getTimer();
+		boolean playerHasNoSkullIcon  = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
+
+		//if the player does not have a skull icon or the timer has expired
+		if (Instant.now().isAfter(skulledTimer.getEndTime())) {
+			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+		} else if (playerHasNoSkullIcon ){
+			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {}.", skulledTimer.getRemainingTime());
+		} else {
+			return;
+		}
+
+		timerManager.removeTimer(false);
+		config.cautiousTimer(false);
 	}
 
 	/*

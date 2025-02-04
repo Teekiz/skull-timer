@@ -21,41 +21,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.skulltimer;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import net.runelite.client.ui.overlay.infobox.Timer;
+package com.skulltimer.data;
 
-public class SkulledTimer extends Timer
+import com.skulltimer.enums.CombatStatus;
+import lombok.Data;
+
+/**
+ * An object representing a record of a combat (a player that the local player has attacked/been attacked by) interaction with the local player.
+ */
+@Data
+public class CombatInteraction
 {
-	private final Color textColour;
-	private final Color warningColour;
-	private final boolean isCautious;
-	public SkulledTimer(Duration duration, BufferedImage image, SkullTimerPlugin plugin, Color textColour, Color warningColour, boolean isCautious)
-	{
-		super(duration.toMillis(), ChronoUnit.MILLIS, image, plugin);
-		this.textColour = textColour;
-		this.warningColour = warningColour;
-		this.isCautious = isCautious;
-	}
+	private static final int defaultTickValue = -1;
+	private int tickNumberOfLastAttack = defaultTickValue;
+	private CombatStatus combatStatus = CombatStatus.ATTACKED;
 
-	public Duration getRemainingTime()
+	/**
+	 * A method to determine if the player has retaliated against the local player.
+	 * @return {@code true} if the players {@link CombatStatus} is either {@code RETALIATED}, {@code INACTIVE} or
+	 * {@code ATTACKER}. Otherwise, returns {@code false}.
+	 */
+	public boolean hasRetaliated()
 	{
-		return Duration.between(Instant.now(), getEndTime());
-	}
-
-	public Color getTextColor()
-	{
-		if (getRemainingTime().getSeconds() <= 30) {return warningColour;}
-		else {return textColour;}
-	}
-
-	public boolean isCautious()
-	{
-		return isCautious;
+		return combatStatus == CombatStatus.RETALIATED ||
+			combatStatus == CombatStatus.INACTIVE ||
+			combatStatus == CombatStatus.ATTACKER;
 	}
 }

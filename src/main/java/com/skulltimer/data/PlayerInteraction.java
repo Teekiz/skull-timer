@@ -21,41 +21,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.skulltimer;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import net.runelite.client.ui.overlay.infobox.Timer;
+package com.skulltimer.data;
 
-public class SkulledTimer extends Timer
+import lombok.Data;
+
+/**
+ * An object representing a record of a players interaction with the local player. An interaction could be considered an animation or interaction.
+ */
+@Data
+public class PlayerInteraction
 {
-	private final Color textColour;
-	private final Color warningColour;
-	private final boolean isCautious;
-	public SkulledTimer(Duration duration, BufferedImage image, SkullTimerPlugin plugin, Color textColour, Color warningColour, boolean isCautious)
-	{
-		super(duration.toMillis(), ChronoUnit.MILLIS, image, plugin);
-		this.textColour = textColour;
-		this.warningColour = warningColour;
-		this.isCautious = isCautious;
+	private static final int defaultTickValue = -1;
+	private int tickNumberOfLastAnimation = defaultTickValue;
+	private int tickNumberOfLastInteraction = defaultTickValue;
+
+	public void setAnimationTick(int tick){
+		if (tick >= 0){
+			tickNumberOfLastAnimation = tick;
+		}
 	}
 
-	public Duration getRemainingTime()
-	{
-		return Duration.between(Instant.now(), getEndTime());
+	public void setInteractionTick(int tick){
+		if (tick >= 0){
+			tickNumberOfLastInteraction = tick;
+		}
 	}
 
-	public Color getTextColor()
+	/**
+	 * A method used to determine if an interaction has occurred on the same tick.
+	 * @return {@code true} if the animation and interaction occur on the same tick number and the tick value set is not -1.
+	 * Returns {@code false} if one or more of those conditions are not met.
+	 */
+	public boolean hasInteractionAndAnimationOccurredOnTheSameTick()
 	{
-		if (getRemainingTime().getSeconds() <= 30) {return warningColour;}
-		else {return textColour;}
-	}
-
-	public boolean isCautious()
-	{
-		return isCautious;
+		return tickNumberOfLastInteraction != -1
+			&& tickNumberOfLastAnimation != -1
+			&& tickNumberOfLastInteraction == tickNumberOfLastAnimation;
 	}
 }

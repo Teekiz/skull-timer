@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2023, Callum Rossiter
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.skulltimer.managers;
 
 import com.skulltimer.SkullTimerConfig;
@@ -11,6 +35,9 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import com.skulltimer.SkullTimerPlugin;
 
+/**
+ * An object that is used to manage the creation and removal of a {@link SkulledTimer} object.
+ */
 @Slf4j
 public class TimerManager
 {
@@ -22,6 +49,7 @@ public class TimerManager
 	private final ItemManager itemManager;
 	@Inject
 	private final SkullTimerPlugin skullTimerPlugin;
+	private final StatusManager statusManager;
 	@Getter
 	private SkulledTimer timer;
 
@@ -31,14 +59,16 @@ public class TimerManager
 	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param infoBoxManager Runelite's {@link InfoBoxManager} object.
 	 * @param itemManager Runelite's {@link ItemManager} object.
+	 * @param statusManager A manager for tracking the players skulled duration.
 	 *
 	 */
-	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager)
+	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager)
 	{
 		this.skullTimerPlugin = skullTimerPlugin;
 		this.config = config;
 		this.infoBoxManager = infoBoxManager;
 		this.itemManager = itemManager;
+		this.statusManager = statusManager;
 	}
 
 	/**
@@ -49,15 +79,22 @@ public class TimerManager
 	 *
 	 * @param timerDuration The {@link Duration} of the timer to be created.
 	 */
-	public void addTimer(Duration timerDuration) throws IllegalArgumentException
+	public void addTimer(Duration timerDuration, boolean useCautiousTimer) throws IllegalArgumentException
 	{
 		if (shouldTimerBeUpdated(timerDuration)) {
 			//removes the timer if a timer is already created.
 			removeTimer(false);
 
 			if (!timerDuration.isNegative() && !timerDuration.isZero()) {
-				timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour());
-				timer.setTooltip("Time left until your character becomes unskulled");
+				if (config.cautiousTimerToggle() && useCautiousTimer){
+					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColourCautious(), config.warningTextColourCautious(), true);
+					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE.");
+				} else {
+					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour(), false);
+					timer.setTooltip("Time left until your character becomes unskulled.");
+
+				}
+				statusManager.setTimerEndTime(timer.getEndTime());
 				infoBoxManager.addInfoBox(timer);
 				log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
 			}
@@ -78,8 +115,10 @@ public class TimerManager
 		{
 			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
+			config.cautiousTimer(timer != null && timer.isCautious());
 		} else {
-			config.skullDuration(); //todo test
+			config.skullDuration(Duration.ZERO);
+			config.cautiousTimer(timer != null && timer.isCautious());
 		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);

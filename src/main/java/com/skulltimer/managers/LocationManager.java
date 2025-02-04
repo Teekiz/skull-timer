@@ -1,5 +1,30 @@
+/*
+ * Copyright (c) 2023, Callum Rossiter
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.skulltimer.managers;
 
+import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.WorldAreas;
 import javax.inject.Inject;
@@ -12,7 +37,7 @@ import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 
 /**
- * A class that is used to check a players world location to identify if a skull timer is required.
+ * An object that is used to check a players world location to identify if a skull timer is required.
  */
 @Slf4j
 public class LocationManager
@@ -22,10 +47,12 @@ public class LocationManager
 	private final TimerManager timerManager;
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
+	private final static int playerRadius = 14;
 
 	/**
 	 * The constructor for a {@link LocationManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
 	public LocationManager(Client client, TimerManager timerManager)
 	{
@@ -42,12 +69,33 @@ public class LocationManager
 			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
 				hasBeenTeleportedIntoAbyss = false;
 				log.debug("Player has been teleported into the abyss. Starting timer.");
-				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
 				return true;
 		} else {
 			hasBeenTeleportedIntoAbyss = false;
 			return false;
 		}
+	}
+
+	/**
+	 * A method to check whether the player matches the conditions to be classified when logged out. (i.e. no animation and within the players expected sight.)
+	 * @param player The {@link Player} whose location is to be checked.
+	 * @return {@code true} if the {@code player} meets the conditions to be considered logging out. {@code false} if they do not.
+	 */
+	public boolean hasPlayerLoggedOut(Player player)
+	{
+		WorldPoint localPlayerWorldPoint = getPlayersLocation();
+
+		if (localPlayerWorldPoint == null || player == null || player.getWorldLocation() == null){
+			return false;
+		}
+
+		WorldPoint playerWorldPoint = player.getWorldLocation();
+
+		WorldPoint radiusPointA = new WorldPoint(localPlayerWorldPoint.getX() + playerRadius, localPlayerWorldPoint.getY() + playerRadius, localPlayerWorldPoint.getPlane());
+		WorldPoint radiusPointB = new WorldPoint(localPlayerWorldPoint.getX() - playerRadius, localPlayerWorldPoint.getY() - playerRadius, localPlayerWorldPoint.getPlane());
+
+		return isInArea(radiusPointA, radiusPointB, playerWorldPoint) && player.getAnimation() == -1;
 	}
 
 	/**

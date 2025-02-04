@@ -1,5 +1,30 @@
+/*
+ * Copyright (c) 2023, Callum Rossiter
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.skulltimer.managers;
 
+import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
 import java.util.ArrayList;
@@ -16,7 +41,7 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 
 /**
- * A class that is used to check a players worn equipment to identify if a skull timer is required.
+ * An object that is used to check a players worn equipment to identify if a skull timer is required.
  * <pr> This feature is based on the suggestion and code provided by @juusokarjanlahti (<a href="https://github.com/juusokarjanlahti">GitHub</a>).</pr>
  */
 @Slf4j
@@ -31,6 +56,7 @@ public class EquipmentManager
 	/**
 	 * The constructor for a {@link EquipmentManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
 	public EquipmentManager(Client client, TimerManager timerManager) {
 		this.client = client;
@@ -101,14 +127,14 @@ public class EquipmentManager
 			//checks if an indefinite skull was previously worn but is now removed
 			else if (previous != null && previous.isSkullIndefinite() && hasNoIndefiniteSkullItem()) {
 				log.debug("Slot {} previously had an item with an indefinite skull: {}. Returning true.", entry.getKey(), previous);
-				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 				return;
 			}
 
 			//checks if the current item provides a skull (but not indefinitely)
 			else if (current != null && hasNoIndefiniteSkullItem()) {
 				log.debug("Slot {} has an item that provides a temporary skull: {}. Returning true.", entry.getKey(), current);
-				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
+				timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 				return;
 			}
 		}

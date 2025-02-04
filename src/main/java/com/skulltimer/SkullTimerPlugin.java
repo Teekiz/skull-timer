@@ -33,8 +33,6 @@ import com.skulltimer.managers.LocationManager;
 import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -64,8 +62,8 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Emblem Trader Skull Timer",
-	description = "Displays a timer when your character receives a skull from the emblem trader."
+	name = "Skulled Timer",
+	description = "Displays a timer when your character receives a skulled status effect."
 )
 public class SkullTimerPlugin extends Plugin
 {

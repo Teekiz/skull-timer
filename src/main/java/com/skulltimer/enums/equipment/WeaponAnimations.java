@@ -22,20 +22,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.skulltimer.enums;
+package com.skulltimer.enums.equipment;
 
-import com.skulltimer.data.CombatInteraction;
+import java.util.Set;
+import lombok.Getter;
+import net.runelite.api.AnimationID;
 
-/**
- * Represents the possible combat states of a player within a {@link CombatInteraction}.
- */
-public enum CombatStatus
+@Getter
+public enum WeaponAnimations
 {
-	ATTACKED,					// The player has been attacked by the local player.
-	RETALIATED,					// The player has retaliated against the local player.
-	DEAD,						// The player has died.
-	UNCERTAIN,					// The players combat status is unknown.
-	LOGGED_OUT,					// The player has logged out.
-	INACTIVE,					// The player has previously retaliated/attacked, but has since logged out/left the local players view.
-	ATTACKER					// The player has attacked the local player.
+	UNDEFINED(Set.of(AnimationID.IDLE), AnimationID.IDLE);
+
+	private final Set<Integer> animationIDS;
+	private final int specialAnimationID;
+
+	WeaponAnimations(Set<Integer> animationIDS, Integer specialAnimationID)
+	{
+		this.animationIDS = animationIDS;
+		this.specialAnimationID = specialAnimationID;
+	}
+
+	public boolean doesIDMatchAnimation(Integer id){
+		return animationIDS.contains(id);
+	}
 }

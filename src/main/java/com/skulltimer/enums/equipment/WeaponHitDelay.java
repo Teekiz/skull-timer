@@ -85,6 +85,16 @@ public enum WeaponHitDelay
 			return 1 + (1 + distance / 3);
 		}
 	},
+	MAGIC_STANDARD_WITH_MELEE {
+		@Override
+		public int calculateHitDelay(int distance){
+			return 1 + (1 + distance / 3);
+		}
+
+		public int calculateMeleeHitDelay(){
+			return 0;
+		}
+	},
 	MAGIC_GRASP_DEMONBANE_NIGHTMARE_STAFF_SPECIALS {
 		@Override
 		public int calculateHitDelay(int distance){

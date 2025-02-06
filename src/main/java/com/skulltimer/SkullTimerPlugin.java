@@ -27,6 +27,7 @@ import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
@@ -281,14 +282,18 @@ public class SkullTimerPlugin extends Plugin
 			return;
 		}
 
-		//todo - calculate the special attack hit delay, add in accuracy check
-
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
-		int hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
 
-		log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+		if (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE && weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(player.getAnimation())) {
+			int hitDelay = weapon.getSpecialHitDelay().calculateHitDelay(distance);
+			log.debug("[SPECIAL ATTACK] Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+			combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
+		} else {
+			int hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
+			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+			combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
+		}
 
-		combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
 
 	}
 

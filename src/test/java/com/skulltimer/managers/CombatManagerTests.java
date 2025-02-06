@@ -1,6 +1,7 @@
 package com.skulltimer.managers;
 
 import com.skulltimer.data.CombatInteraction;
+import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
@@ -11,12 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +30,10 @@ public class CombatManagerTests extends TimerMocks
 	@Mock
 	Player localPlayer;
 
+	PlayerInteraction playerInteraction;
 	CombatInteraction combatInteraction;
+
+	@Spy
 	@InjectMocks
 	CombatManager combatManager;
 
@@ -238,5 +244,66 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		assertEquals(CombatStatus.RETALIATED, combatManager.getCombatRecords().get("PlayerOne").getCombatStatus());
+	}
+
+	@Test
+	public void onAttackAnimation_WithNullRecord()
+	{
+		combatManager.onAttackAnimation(player.getName(), 2);
+	}
+
+	@Test
+	public void onAttackAnimation_WithExistingRecord()
+	{
+		playerInteraction = new PlayerInteraction();
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		combatManager.onAttackAnimation(player.getName(), 2);
+		assertEquals(2, playerInteraction.getTickNumberOfExpectedHit());
+	}
+
+	@Test
+	public void onPlayerHitSplat_TickNumberLowerThanCurrentTick()
+	{
+		playerInteraction = new PlayerInteraction();
+		playerInteraction.setExpectedHitTick(1);
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		combatManager.onPlayerHitSplat(3);
+
+		assertEquals(0, combatManager.getCombatRecords().size());
+	}
+
+	@Test
+	public void onPlayerHitSplat_TickNumberEqualToCurrentTick()
+	{
+		playerInteraction = new PlayerInteraction();
+		playerInteraction.setExpectedHitTick(3);
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		combatManager.onPlayerHitSplat(3);
+
+		assertEquals(1, combatManager.getCombatRecords().size());
+		verify(combatManager, times(1)).onConfirmedInCombat(player.getName());
+	}
+
+	@Test
+	public void onPlayerHitSplat_TickNumberGreaterThanCurrentTick()
+	{
+		playerInteraction = new PlayerInteraction();
+		playerInteraction.setExpectedHitTick(4);
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		combatManager.onPlayerHitSplat(3);
+
+		assertEquals(1, combatManager.getInteractionRecords().size());
+		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
+	}
+
+	@Test
+	public void onPlayerHitSplat_TickNumberSetToDefault()
+	{
+		playerInteraction = new PlayerInteraction();
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		combatManager.onPlayerHitSplat(3);
+
+		assertEquals(1, combatManager.getInteractionRecords().size());
+		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
 	}
 }

@@ -78,6 +78,26 @@ public class LocationManager
 	}
 
 	/**
+	 * A method to calculate the distance between two players using the Chebyshev distance formula.
+	 * @param playerOne The player to calculate the distance to.
+	 * @param playerTwo The player to calculate the distance from.
+	 * @return The distance between the two players. If either of the players are {@code null}, then a value of {@code 0} will be returned.
+	 */
+	public int calculateDistanceBetweenPlayers(Player playerOne, Player playerTwo){
+		if (playerOne == null || playerTwo == null) {return 0;}
+
+		WorldPoint worldPointA = playerOne.getWorldLocation();
+		WorldPoint worldPointB = playerTwo.getWorldLocation();
+
+		if (worldPointA == null || worldPointB == null) {return 0;}
+
+		return Math.max(
+			Math.abs(worldPointA.getX() - worldPointB.getX()),
+			Math.abs(worldPointA.getY() - worldPointB.getY())
+		);
+	}
+
+	/**
 	 * A method to check whether the player matches the conditions to be classified when logged out. (i.e. no animation and within the players expected sight.)
 	 * @param player The {@link Player} whose location is to be checked.
 	 * @return {@code true} if the {@code player} meets the conditions to be considered logging out. {@code false} if they do not.

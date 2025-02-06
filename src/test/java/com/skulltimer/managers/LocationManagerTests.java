@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
@@ -28,6 +29,10 @@ public class LocationManagerTests extends TimerMocks
 	Player player;
 	@Mock
 	Player localPlayer;
+	@Mock
+	WorldPoint worldPointA;
+	@Mock
+	WorldPoint worldPointB;
 	@BeforeEach
 	public void startUp()
 	{
@@ -164,5 +169,68 @@ public class LocationManagerTests extends TimerMocks
 		when(player.getWorldLocation()).thenReturn(null);
 
 		assertFalse(locationManager.hasPlayerLoggedOut(player));
+	}
+
+	@Test
+	public void calculateDistanceBetweenPlayers_PlayersAreNull()
+	{
+		assertEquals(0, locationManager.calculateDistanceBetweenPlayers(null, null));
+		assertEquals(0, locationManager.calculateDistanceBetweenPlayers(player, null));
+	}
+
+	@Test
+	public void calculateDistanceBetweenPlayers_PlayersLocationsAreNull()
+	{
+		when(player.getWorldLocation()).thenReturn(null);
+		assertEquals(0, locationManager.calculateDistanceBetweenPlayers(player, localPlayer));
+
+		when(player.getWorldLocation()).thenReturn(worldPointB);
+		when(localPlayer.getWorldLocation()).thenReturn(null);
+		assertEquals(0, locationManager.calculateDistanceBetweenPlayers(player, localPlayer));
+	}
+
+	@Test
+	public void calculateDistanceBetweenPlayers_PlayerIsWithinMeleeRange()
+	{
+		when(player.getWorldLocation()).thenReturn(worldPointA);
+		when(localPlayer.getWorldLocation()).thenReturn(worldPointB);
+
+		when(worldPointA.getX()).thenReturn(10);
+		when(worldPointA.getY()).thenReturn(290);
+
+		when(worldPointB.getX()).thenReturn(11);
+		when(worldPointB.getY()).thenReturn(291);
+
+		assertEquals(1, locationManager.calculateDistanceBetweenPlayers(player, localPlayer));
+	}
+
+	@Test
+	public void calculateDistanceBetweenPlayers_PlayerIsWithin_DistantX()
+	{
+		when(player.getWorldLocation()).thenReturn(worldPointA);
+		when(localPlayer.getWorldLocation()).thenReturn(worldPointB);
+
+		when(worldPointA.getX()).thenReturn(10);
+		when(worldPointA.getY()).thenReturn(290);
+
+		when(worldPointB.getX()).thenReturn(20);
+		when(worldPointB.getY()).thenReturn(291);
+
+		assertEquals(10, locationManager.calculateDistanceBetweenPlayers(player, localPlayer));
+	}
+
+	@Test
+	public void calculateDistanceBetweenPlayers_PlayerIsWithin_DistantY()
+	{
+		when(player.getWorldLocation()).thenReturn(worldPointA);
+		when(localPlayer.getWorldLocation()).thenReturn(worldPointB);
+
+		when(worldPointA.getX()).thenReturn(10);
+		when(worldPointA.getY()).thenReturn(391);
+
+		when(worldPointB.getX()).thenReturn(11);
+		when(worldPointB.getY()).thenReturn(291);
+
+		assertEquals(100, locationManager.calculateDistanceBetweenPlayers(player, localPlayer));
 	}
 }

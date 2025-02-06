@@ -24,6 +24,8 @@
 
 package com.skulltimer.enums.equipment;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import net.runelite.api.ItemID;
 
@@ -295,12 +297,12 @@ public enum Weapons
 	BOXING_GLOVES(ItemID.BOXING_GLOVES, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	BOXING_GLOVES_A(ItemID.BOXING_GLOVES_7673, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	BRONZE_CLAWS(ItemID.BRONZE_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	BURNING_CLAWS(ItemID.BURNING_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	CORRUPTED_DRAGON_CLAWS(ItemID.CORRUPTED_DRAGON_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	DRAGON_CLAWS(ItemID.DRAGON_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	DRAGON_CLAWS_LMS(ItemID.DRAGON_CLAWS_20784, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	DRAGON_CLAWS_CR(ItemID.DRAGON_CLAWS_CR, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	DRAGON_CLAWS_OR(ItemID.DRAGON_CLAWS_OR, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
+	BURNING_CLAWS(ItemID.BURNING_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
+	CORRUPTED_DRAGON_CLAWS(ItemID.CORRUPTED_DRAGON_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
+	DRAGON_CLAWS(ItemID.DRAGON_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
+	DRAGON_CLAWS_LMS(ItemID.DRAGON_CLAWS_20784, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
+	DRAGON_CLAWS_CR(ItemID.DRAGON_CLAWS_CR, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
+	DRAGON_CLAWS_OR(ItemID.DRAGON_CLAWS_OR, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD, WeaponHitDelay.MELEE_DELAYED_SPECIAL),
 	IRON_CLAWS(ItemID.IRON_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	MITHRIL_CLAWS(ItemID.MITHRIL_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	RUNE_CLAWS(ItemID.RUNE_CLAWS, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
@@ -1120,7 +1122,10 @@ public enum Weapons
 	RED_SALAMANDER(ItemID.RED_SALAMANDER, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	SWAMP_LIZARD(ItemID.SWAMP_LIZARD, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
 	TECU_SALAMANDER(ItemID.TECU_SALAMANDER, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
-	NATURES_REPRISAL(ItemID.NATURES_REPRISAL, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD);
+	NATURES_REPRISAL(ItemID.NATURES_REPRISAL, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD),
+
+	/*FISTS*/
+	FISTS(-1, WeaponAnimations.UNDEFINED, WeaponHitDelay.MELEE_STANDARD);
 
 	private final int weaponID;
 	private final WeaponAnimations weaponAnimations;
@@ -1142,5 +1147,18 @@ public enum Weapons
 		this.standardHitDelay = standardHitDelay;
 		this.specialHitDelay = WeaponHitDelay.NOT_APPLICABLE;
 
+	}
+
+	//enables the weapons to be looked up at O(1) speed.
+	private static final Map<Integer, Weapons> lookup = new HashMap<>();
+
+	static {
+		for (Weapons weapon : Weapons.values()) {
+			lookup.put(weapon.weaponID, weapon);
+		}
+	}
+
+	public static Weapons getByItemID(int itemID) {
+		return lookup.get(itemID);
 	}
 }

@@ -31,12 +31,16 @@ import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import com.skulltimer.SkulledTimer;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
+
+import static com.skulltimer.data.PlayerInteraction.defaultTickValue;
 
 /**
  * An object that is used to manage combat scenarios to determine if a timer is required to be started.
@@ -102,26 +106,7 @@ public class CombatManager
 		updateInteractionRecord(interaction, currentTick, isAnimation, playerName);
 
 		if (interaction.hasInteractionAndAnimationOccurredOnTheSameTick()){
-
-			CombatInteraction combatInteraction = combatRecords.get(playerName);
-
-			//if the player does not already exist in the records, create a new record.
-			if (combatInteraction == null){
-				combatInteraction = new CombatInteraction();
-				combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
-				combatRecords.put(playerName, combatInteraction);
-			}
-
-			//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
-			if (shouldSetStatusToRetaliated(combatInteraction)){
-				log.debug("Player {} already exists in target records. Updating target record to retaliated.", playerName);
-				combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
-				//if the player is not a target then check if they should be classified as an attacker
-			} else if (shouldSetStatusToAttacker(combatInteraction)){
-				log.debug("Player {} exists in interaction records. Upgrading to attacker.", playerName);
-				combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
-			}
-			interactionRecords.remove(playerName);
+			onConfirmedInCombat(playerName);
 		}
 	}
 
@@ -165,6 +150,33 @@ public class CombatManager
 	private boolean shouldSetStatusToRetaliated(CombatInteraction combatInteraction){
 		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
 		return combatInteraction != null && !combatInteraction.hasRetaliated();
+	}
+
+	/**
+	 * A method that is used to update a players {@link CombatInteraction} in the {@code combatRecords}.
+	 * @param playerName The name of the player who had this interaction.
+	 */
+	public void onConfirmedInCombat(String playerName)
+	{
+		CombatInteraction combatInteraction = combatRecords.get(playerName);
+
+		//if the player does not already exist in the records, create a new record.
+		if (combatInteraction == null){
+			combatInteraction = new CombatInteraction();
+			combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+			combatRecords.put(playerName, combatInteraction);
+		}
+
+		//if the interaction is from a player who was in the target records, and they haven't previously responded, update their record
+		if (shouldSetStatusToRetaliated(combatInteraction)){
+			log.debug("Player {} already exists in target records. Updating target record to retaliated.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
+			//if the player is not a target then check if they should be classified as an attacker
+		} else if (shouldSetStatusToAttacker(combatInteraction)){
+			log.debug("Player {} exists in interaction records. Upgrading to attacker.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
+		}
+		//interactionRecords.remove(playerName);
 	}
 
 	/**
@@ -229,6 +241,46 @@ public class CombatManager
 		{
 			log.debug("Timer will not be started. {}'s combat status: {}.", player.getName(), combatInteraction.getCombatStatus());
 		}
+	}
+
+	/**
+	 * A method that is used to check if a hitsplat has occurred when it was expected to.
+	 * @param currentTick The current tick number.
+	 */
+	public void onPlayerHitSplat(int currentTick)
+	{
+		Map<String, PlayerInteraction> expectedInteractions = interactionRecords.entrySet().stream()
+			.filter(entry -> entry.getValue().getTickNumberOfExpectedHit() <= currentTick
+				&& entry.getValue().getTickNumberOfExpectedHit() != defaultTickValue)
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+		for (Map.Entry<String, PlayerInteraction> interactions : expectedInteractions.entrySet()){
+			String playerName = interactions.getKey();
+			int expectedHit = interactions.getValue().getTickNumberOfExpectedHit();
+			//If the hit occurred either now or one tick late (because of the processing order delay), the attack will count as an attack
+			if (currentTick == expectedHit || currentTick - 1 == expectedHit){
+				log.debug("Expected hit for player {} has occurred.", playerName);
+				onConfirmedInCombat(playerName);
+			} else {
+				log.debug("Expected hit for player {} has expired (Expected: {} Current: {}). Removing from interaction records.", playerName, expectedHit, currentTick);
+				interactionRecords.remove(playerName);
+			}
+		}
+	}
+
+	/**
+	 * A method used to set the expected hit value when an attack occurs.
+	 * @param playerName The name of the player who started the animation.
+	 * @param expectedHitTick The tick number of when the attack can be expected to land.
+	 */
+	public void onAttackAnimation(String playerName, int expectedHitTick){
+		PlayerInteraction interaction = interactionRecords.get(playerName);
+
+		if (interaction == null) {
+			return;
+		}
+
+		interaction.setExpectedHitTick(expectedHitTick);
 	}
 
 	/**

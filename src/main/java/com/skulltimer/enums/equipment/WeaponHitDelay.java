@@ -35,6 +35,12 @@ public enum WeaponHitDelay
 			return 0;
 		}
 	},
+	MELEE_DELAYED_SPECIAL {
+		@Override
+		public int calculateHitDelay(int distance){
+			return 1;
+		}
+	},
 	RANGED_STANDARD {
 		@Override
 		public int calculateHitDelay(int distance){

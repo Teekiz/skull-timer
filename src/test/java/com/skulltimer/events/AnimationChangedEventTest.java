@@ -1,9 +1,12 @@
 package com.skulltimer.events;
 
+import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.mocks.PluginMocks;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.PlayerComposition;
 import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.kit.KitType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -12,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +31,8 @@ public class AnimationChangedEventTest extends PluginMocks
 	Player localPlayer;
 	@Mock
 	NPC npc;
+	@Mock
+	PlayerComposition playerComposition;
 
 	@Test
 	public void playerIsNotInWilderness()
@@ -92,7 +98,48 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
+
 		eventBus.post(animationChanged);
 		verify(combatManager, times(1)).onAnimationOrInteractionChange(player, 0, true);
+	}
+
+	@Test
+	public void conditionsMet_PlayersAreDistanceOfTen()
+	{
+		when(locationManager.isInWilderness()).thenReturn(true);
+		when(animationChanged.getActor()).thenReturn(player);
+		when(player.getName()).thenReturn("Player");
+		when(player.getAnimation()).thenReturn(100);
+
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getName()).thenReturn("LocalPlayer");
+
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
+
+		when(locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player)).thenReturn(10);
+
+		eventBus.post(animationChanged);
+		verify(combatManager, times(1)).onAttackAnimation(player.getName(), 0);
+	}
+
+	@Test
+	public void conditionsMet_WeaponIsNUll()
+	{
+		when(locationManager.isInWilderness()).thenReturn(true);
+		when(animationChanged.getActor()).thenReturn(player);
+		when(player.getName()).thenReturn("Player");
+		when(player.getAnimation()).thenReturn(100);
+
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getName()).thenReturn("LocalPlayer");
+
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(0);
+
+		eventBus.post(animationChanged);
+		verify(combatManager, times(0)).onAttackAnimation(anyString(), anyInt());
 	}
 }

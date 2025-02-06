@@ -27,6 +27,7 @@ import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
@@ -51,6 +52,7 @@ import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.events.PlayerDespawned;
+import net.runelite.api.kit.KitType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -84,6 +86,9 @@ public class SkullTimerPlugin extends Plugin
 	private CombatManager combatManager;
 	private StatusManager statusManager;
 	private int gameTickCounter;
+	private boolean hasHitSplatOccurred;
+
+	//todo - could add optional panel for debugging
 
 	@Override
 	protected void startUp() throws Exception
@@ -95,6 +100,7 @@ public class SkullTimerPlugin extends Plugin
 		combatManager = new CombatManager(timerManager, config);
 
 		gameTickCounter = 0;
+		hasHitSplatOccurred = false;
 
 		clientThread.invoke(() -> {
 			equipmentManager.updateCurrentEquipment();
@@ -155,6 +161,11 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
+		if (hasHitSplatOccurred){
+			hasHitSplatOccurred = false;
+			combatManager.onPlayerHitSplat(gameTickCounter);
+		}
+
 		gameTickCounter++;
 		statusManager.checkSkulledStatus();
 
@@ -232,32 +243,53 @@ public class SkullTimerPlugin extends Plugin
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
 		//if the local player is not in the wilderness or if the player hit is the local player
-		if (!locationManager.isInWilderness() || hitsplatApplied.getActor().getName() != null &&
-			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+		if (!locationManager.isInWilderness() || hitsplatApplied.getActor() == null ||
+			hitsplatApplied.getActor().getName() == null || !(hitsplatApplied.getActor() instanceof Player)){
 			return;
 		}
 
+		Player playerHit = (Player) hitsplatApplied.getActor();
+		Player localPlayer = client.getLocalPlayer();
+
+		if (playerHit.getName().equalsIgnoreCase(localPlayer.getName())){
+			hasHitSplatOccurred = true;
+		}
 		//if the player attacks a player in the wilderness, and they have a skull icon
-		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
-			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
-			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTickCounter);
+		else if (hitsplatApplied.getHitsplat().isMine() && localPlayer.getSkullIcon() != SkullIcon.NONE){
+			combatManager.onTargetHitsplat(playerHit, localPlayer, gameTickCounter);
 		}
 	}
 
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1){
+		Actor actor = animationChanged.getActor();
+
+		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1 ||
+			!(actor instanceof Player) || actor.getName() == null || actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
 			return;
 		}
 
-		Actor actor = animationChanged.getActor();
+		Player player = (Player) actor;
+		combatManager.onAnimationOrInteractionChange(player, gameTickCounter, true);
 
-		if (actor instanceof Player && actor.getName() != null &&
-			!actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()))
-		{
-			combatManager.onAnimationOrInteractionChange((Player) actor, gameTickCounter, true);
+		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
+		Weapons weapon = Weapons.getByItemID(weaponID);
+
+		if (weapon == null){
+			log.warn("Weapon {} does not exist in weapons table, is it missing?", weaponID);
+			return;
 		}
+
+		//todo - calculate the special attack hit delay, add in accuracy check
+
+		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
+		int hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
+
+		log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+
+		combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
+
 	}
 
 	@Subscribe

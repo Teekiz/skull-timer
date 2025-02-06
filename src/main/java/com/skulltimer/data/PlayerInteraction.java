@@ -32,9 +32,10 @@ import lombok.Data;
 @Data
 public class PlayerInteraction
 {
-	private static final int defaultTickValue = -1;
+	public static final int defaultTickValue = -1;
 	private int tickNumberOfLastAnimation = defaultTickValue;
 	private int tickNumberOfLastInteraction = defaultTickValue;
+	private int tickNumberOfExpectedHit = -1;
 
 	public void setAnimationTick(int tick){
 		if (tick >= 0){
@@ -45,6 +46,12 @@ public class PlayerInteraction
 	public void setInteractionTick(int tick){
 		if (tick >= 0){
 			tickNumberOfLastInteraction = tick;
+		}
+	}
+
+	public void setExpectedHitTick(int tick){
+		if (tick >= 0){
+			tickNumberOfExpectedHit = tick;
 		}
 	}
 

@@ -1,5 +1,6 @@
 package com.skulltimer.events;
 
+import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.mocks.PluginMocks;
 import net.runelite.api.NPC;
@@ -94,6 +95,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(animationChanged.getActor()).thenReturn(player);
 		when(player.getName()).thenReturn("Player");
 		when(player.getAnimation()).thenReturn(100);
+		when(config.sensitivity()).thenReturn(Sensitivity.HIGH);
 
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");

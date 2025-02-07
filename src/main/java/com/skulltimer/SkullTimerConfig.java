@@ -1,5 +1,6 @@
 package com.skulltimer;
 
+import com.skulltimer.enums.config.Sensitivity;
 import java.awt.Color;
 import java.time.Duration;
 import net.runelite.client.config.Config;
@@ -101,4 +102,13 @@ public interface SkullTimerConfig extends Config
 		section = experimental
 	)
 	default Color warningTextColourCautious() {return Color.magenta;}
+
+	@ConfigItem(
+		keyName = "sensitivity",
+		name="Retaliation Sensitivity",
+		description = "How sensitive the plugin is when detecting retaliatory attacks.",
+		section = experimental
+	)
+	default Sensitivity sensitivity() {return Sensitivity.MEDIUM;}
+
 }

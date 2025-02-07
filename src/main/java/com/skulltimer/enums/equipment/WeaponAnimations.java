@@ -43,7 +43,7 @@ public enum WeaponAnimations
 	}
 
 	public boolean doesIDMatchAnimation(Integer id){
-		return animationIDS.contains(id);
+		return animationIDS.contains(id) || id == specialAnimationID;
 	}
 
 	public boolean doesSpecialIDMatchAnimation(Integer id){

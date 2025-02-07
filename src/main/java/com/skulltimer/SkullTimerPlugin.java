@@ -27,6 +27,7 @@ import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.managers.CombatManager;
@@ -272,7 +273,12 @@ public class SkullTimerPlugin extends Plugin
 		}
 
 		Player player = (Player) actor;
-		combatManager.onAnimationOrInteractionChange(player, gameTickCounter, true);
+		int animationID = player.getAnimation();
+
+		//if the sensitivity setting is set to high, process this attack using the animation.
+		if (config.sensitivity() == Sensitivity.HIGH){
+			combatManager.onAnimationOrInteractionChange(player, gameTickCounter, true);
+		}
 
 		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
 		Weapons weapon = Weapons.getByItemID(weaponID);
@@ -282,19 +288,24 @@ public class SkullTimerPlugin extends Plugin
 			return;
 		}
 
-		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
-
-		if (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE && weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(player.getAnimation())) {
-			int hitDelay = weapon.getSpecialHitDelay().calculateHitDelay(distance);
-			log.debug("[SPECIAL ATTACK] Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
-			combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
-		} else {
-			int hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
-			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
-			combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
+		//if the sensitivity is low and the weapon id does not match, do not proceed.
+		if (config.sensitivity() == Sensitivity.LOW && !weapon.getWeaponAnimations().doesIDMatchAnimation(animationID)) {
+			log.debug("Animation does not match any known weapon IDs. Discarding animation.");
+			return;
 		}
 
+		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
+		int hitDelay;
 
+		if (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE && weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(animationID)) {
+			hitDelay = weapon.getSpecialHitDelay().calculateHitDelay(distance);
+			log.debug("[SPECIAL ATTACK] Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+		} else {
+			hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
+			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+		}
+
+		combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
 	}
 
 	@Subscribe

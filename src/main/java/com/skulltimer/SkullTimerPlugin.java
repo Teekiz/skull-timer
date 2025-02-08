@@ -28,6 +28,7 @@ import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.config.Sensitivity;
+import com.skulltimer.enums.equipment.GenericWeapons;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.managers.CombatManager;
@@ -99,7 +100,7 @@ public class SkullTimerPlugin extends Plugin
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager);
-		combatManager = new CombatManager(timerManager, config);
+		combatManager = new CombatManager(timerManager, config, itemManager);
 
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
@@ -280,32 +281,17 @@ public class SkullTimerPlugin extends Plugin
 			combatManager.onAnimationOrInteractionChange(player, gameTickCounter, true);
 		}
 
-		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
-		Weapons weapon = Weapons.getByItemID(weaponID);
-
-		if (weapon == null){
-			log.warn("Weapon {} does not exist in weapons table, is it missing?", weaponID);
-			return;
-		}
-
-		//if the sensitivity is low and the weapon id does not match, do not proceed.
-		if (config.sensitivity() == Sensitivity.LOW && !weapon.getWeaponAnimations().doesIDMatchAnimation(animationID)) {
-			log.debug("Animation does not match any known weapon IDs. Discarding animation.");
-			return;
-		}
-
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
-		int hitDelay;
+		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
+		WeaponHitDelay weaponHitDelay = combatManager.getWeaponHitDelay(weaponID, animationID);
 
-		if (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE && weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(animationID)) {
-			hitDelay = weapon.getSpecialHitDelay().calculateHitDelay(distance);
-			log.debug("[SPECIAL ATTACK] Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+		if (weaponHitDelay == null){
+			log.warn("Weapon {} does not exist in weapons table.", weaponID);
 		} else {
-			hitDelay = weapon.getStandardHitDelay().calculateHitDelay(distance);
-			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weapon, distance, hitDelay, gameTickCounter);
+			int hitDelay = weaponHitDelay.calculateHitDelay(distance);
+			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weaponID, distance, hitDelay, gameTickCounter);
+			combatManager.setExpectedHitTick(player.getName(), gameTickCounter + hitDelay);
 		}
-
-		combatManager.onAttackAnimation(player.getName(), gameTickCounter + hitDelay);
 	}
 
 	@Subscribe
@@ -361,7 +347,6 @@ public class SkullTimerPlugin extends Plugin
 		if (timerManager.getTimer() != null) {
 			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), false);
 		}
-		combatManager.setPVPEnabled(config.pvpToggle());
 	}
 
 	@Provides

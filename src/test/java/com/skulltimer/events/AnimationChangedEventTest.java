@@ -1,7 +1,7 @@
 package com.skulltimer.events;
 
 import com.skulltimer.enums.config.Sensitivity;
-import com.skulltimer.enums.equipment.Weapons;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.mocks.PluginMocks;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -120,11 +120,12 @@ public class AnimationChangedEventTest extends PluginMocks
 
 		when(player.getPlayerComposition()).thenReturn(playerComposition);
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
+		when(combatManager.getWeaponHitDelay(1289, 100)).thenReturn(WeaponHitDelay.MELEE_STANDARD);
 
 		when(locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player)).thenReturn(10);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(1)).onAttackAnimation(player.getName(), 0);
+		verify(combatManager, times(1)).setExpectedHitTick(player.getName(), 0);
 	}
 
 	@Test
@@ -142,6 +143,6 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(0);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAttackAnimation(anyString(), anyInt());
+		verify(combatManager, times(0)).setExpectedHitTick(anyString(), anyInt());
 	}
 }

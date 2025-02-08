@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +43,6 @@ public class CombatManagerTests extends TimerMocks
 	public void startUp()
 	{
 		when(player.getName()).thenReturn("PlayerOne");
-		combatManager.setPVPEnabled(true);
 	}
 
 	@Test
@@ -58,6 +56,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 	}
@@ -65,6 +65,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithMultipleHits()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(2)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
@@ -73,6 +75,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithRetaliatedAttack()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		//initial attack
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		//simulated response
@@ -115,6 +119,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithPlayerBeingSetToCautious()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		CombatInteraction interaction = new CombatInteraction();
 		interaction.setCombatStatus(CombatStatus.UNCERTAIN);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
@@ -137,6 +143,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithPlayerInteractionAndNoAnimation()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
@@ -148,6 +156,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_WithPlayerAnimationAndNoInteraction()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
@@ -159,6 +169,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnOtherPlayer_PlayerHadLoggedOut_WithNoRetaliation()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		CombatInteraction interaction = new CombatInteraction();
 		interaction.setCombatStatus(CombatStatus.LOGGED_OUT);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
@@ -183,6 +195,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void PlayerWithInteractionAndAnimationOnDifferentTicks()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatManager.onAnimationOrInteractionChange(player, tickCounter++, false);
 		combatManager.onAnimationOrInteractionChange(player, tickCounter++, true);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
@@ -199,17 +213,18 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void PVPDisabledTest()
 	{
-		combatManager.setPVPEnabled(false);
+		when(config.pvpToggle()).thenReturn(false);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
 		assertEquals(1, combatManager.getCombatRecords().size());
-		combatManager.setPVPEnabled(true);
 	}
 
 	@Test
 	public void targetHasDied()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatInteraction = new CombatInteraction();
 		combatInteraction.setCombatStatus(CombatStatus.DEAD);
 		combatManager.getCombatRecords().put("PlayerOne", combatInteraction);
@@ -221,6 +236,8 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void targetHasDied_PreviouslyRetaliated()
 	{
+		when(config.pvpToggle()).thenReturn(true);
+
 		combatInteraction = new CombatInteraction();
 		combatInteraction.setCombatStatus(CombatStatus.DEAD);
 		combatManager.getCombatRecords().put("PlayerOne", combatInteraction);
@@ -247,17 +264,17 @@ public class CombatManagerTests extends TimerMocks
 	}
 
 	@Test
-	public void onAttackAnimation_WithNullRecord()
+	public void setExpectedHitTick_WithNullRecord()
 	{
-		combatManager.onAttackAnimation(player.getName(), 2);
+		combatManager.setExpectedHitTick(player.getName(), 2);
 	}
 
 	@Test
-	public void onAttackAnimation_WithExistingRecord()
+	public void setExpectedHitTick_WithExistingRecord()
 	{
 		playerInteraction = new PlayerInteraction();
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.onAttackAnimation(player.getName(), 2);
+		combatManager.setExpectedHitTick(player.getName(), 2);
 		assertEquals(2, playerInteraction.getTickNumberOfExpectedHit());
 	}
 

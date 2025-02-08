@@ -109,28 +109,34 @@ public class SkullTimerPlugin extends Plugin
 	}
 
 	/*
-		This event if the player logs in/out or is teleported to another location (e.g. the Abyss).
- 	*/
+	 * This event is triggered if the player logs in/out, hops or is teleported to another location (e.g. the Abyss).
+	 */
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		//logging in - create timer
+		// Check if GameState LOGGED_IN
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
+			// Check if config.skullDuration is not null && timerManager has a timer && player location is not Abyss
+			// (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
 			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
+				// Add timer with the SkullDuration from the config and set cautiousTimer
 				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
 			}
-			//sets the initial state of the equipment checker.
+			// Update current equipment for equipmentManager
 			equipmentManager.updateCurrentEquipment();
 		}
-		//logged out or hopping - stop timer
+		// Check if GameState LOGIN_SCREEN or HOPPING
 		else if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING)
 		{
+			// Check if timerManager has a timer
 			if (timerManager.getTimer() != null){
+				// Log the remaining time in minutes
 				log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
+				// Save the remaining time and remove the timer
 				timerManager.removeTimer(true);
 			}
+			// Clear combat records from combatManager
 			combatManager.clearRecords();
 		}
 	}

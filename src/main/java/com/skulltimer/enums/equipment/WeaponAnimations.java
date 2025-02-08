@@ -31,7 +31,8 @@ import net.runelite.api.AnimationID;
 @Getter
 public enum WeaponAnimations
 {
-	UNDEFINED(Set.of(AnimationID.IDLE), AnimationID.IDLE);
+	UNDEFINED(Set.of(AnimationID.IDLE), AnimationID.IDLE),
+	ACB(Set.of(7552), 7552);
 
 	private final Set<Integer> animationIDS;
 	private final int specialAnimationID;

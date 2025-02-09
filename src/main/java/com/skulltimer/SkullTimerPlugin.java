@@ -88,6 +88,7 @@ public class SkullTimerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
@@ -96,6 +97,7 @@ public class SkullTimerPlugin extends Plugin
 
 		gameTickCounter = 0;
 
+		// Update the current equipment when the plugin starts
 		clientThread.invoke(() -> {
 			equipmentManager.updateCurrentEquipment();
 		});
@@ -104,33 +106,36 @@ public class SkullTimerPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
-		//save the timer when shutting down if it exists
+		// Remove the timer, save duration remaining
 		timerManager.removeTimer(timerManager.getTimer() != null);
 	}
 
-	/*
-	 * This event is triggered if the player logs in/out, hops or is teleported to another location (e.g. the Abyss).
+	/**
+	 * This event is triggered if the player logs in/out, hops worlds, or is teleported to another location (e.g., the Abyss).
+	 *
+	 * @param gameStateChanged The event that indicates the game state has changed.
 	 */
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		// Check if GameState LOGGED_IN
+		// Check if the player is logged in
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			// Check if config.skullDuration is not null && timerManager has a timer && player location is not Abyss
-			// (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
-			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
+			// If the skull duration is set, there is no active timer, and the player is not in the Abyss
+			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
+			{
 				// Add timer with the SkullDuration from the config and set cautiousTimer
 				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
 			}
 			// Update current equipment for equipmentManager
 			equipmentManager.updateCurrentEquipment();
 		}
-		// Check if GameState LOGIN_SCREEN or HOPPING
+		// Check if the player is on the login screen or hopping worlds
 		else if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING)
 		{
 			// Check if timerManager has a timer
-			if (timerManager.getTimer() != null){
+			if (timerManager.getTimer() != null)
+			{
 				// Log the remaining time in minutes
 				log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
 				// Save the remaining time and remove the timer
@@ -141,23 +146,28 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	/*
-		This event if the player talks to the Emblem Trader.
- 	*/
+	/**
+	 * This event is triggered if the player talks to the Emblem Trader.
+	 *
+	 * @param chatMessage The event that contains the chat message.
+	 */
 	@Subscribe
 	public void onChatMessage(ChatMessage chatMessage)
 	{
-		//check the message type and content
+		// Check the message type and content
 		if (chatMessage.getType() == ChatMessageType.MESBOX && (chatMessage.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
-		chatMessage.getMessage().equalsIgnoreCase("You are now skulled.")))
+			chatMessage.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
+			// Add a 20-minute timer when the player receives a skull from the Emblem Trader
 			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 		}
 	}
 
-	/*
-		This event is used to remove the skull timer should the icon expire.
- 	*/
+	/**
+	 * This event is used to remove the skull timer should the icon expire.
+	 *
+	 * @param gameTick The event that indicates a game tick has occurred.
+	 */
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
@@ -167,93 +177,123 @@ public class SkullTimerPlugin extends Plugin
 		SkulledTimer skulledTimer = timerManager.getTimer();
 		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
 
-		if (skulledTimer == null){
+		if (skulledTimer == null)
+		{
 			return;
 		}
 
-		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime())) {
-			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
-		} else if (playerHasNoSkullIcon){
+		// If the player does not have a skull icon or the timer has expired
+		if (Instant.now().isAfter(skulledTimer.getEndTime()))
+		{
+			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+		}
+		else if (playerHasNoSkullIcon)
+		{
 			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
-		} else {
+		}
+		else
+		{
 			return;
 		}
-
+		// Remove the timer and reset the cautious timer config
 		timerManager.removeTimer(false);
 		config.cautiousTimer(false);
 	}
 
-	/*
-		This event is used for item checks.
+	/**
+	 * This event is used for item checks.
+	 *
+	 * @param itemContainerChanged The event that indicates an item container has changed.
 	 */
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
 		// checks to see if the changes made are to the equipment
 		if (equipmentManager.getEquipment() != null && itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
-			!equipmentManager.getModifiedItemSlotChanges().isEmpty()) {
-			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+			!equipmentManager.getModifiedItemSlotChanges().isEmpty())
+		{
+			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
+			{
 				equipmentManager.shouldTimerBeStarted(equipmentManager.getModifiedItemSlotChanges());
 			}
 		}
 	}
 
-	/*
-		This event is used to confirm if the player has been teleported to the abyss.
+	/**
+	 * This event is used to confirm if the player has been teleported to the Abyss.
+	 *
+	 * @param overheadTextChanged The event that indicates overhead text has changed.
 	 */
 	@Subscribe
 	public void onOverheadTextChanged(OverheadTextChanged overheadTextChanged)
 	{
 		if (overheadTextChanged.getActor().getName() != null &&
 			overheadTextChanged.getActor().getName().equalsIgnoreCase("Mage of Zamorak") &&
-		 	overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!")){
+			overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!"))
+		{
 			//sets one of the conditions to add the abyss timer.
 			locationManager.setHasBeenTeleportedIntoAbyss(true);
 		}
 	}
 
-	/*
-		PVP Events - Interaction then animation
+	/**
+	 * This event is triggered when an interaction changes in PVP scenarios
+	 *
+	 * @param interactingChanged The event that indicates an interaction has changed.
 	 */
 	@Subscribe
 	public void onInteractingChanged(InteractingChanged interactingChanged)
 	{
-		//if the player is not in the wilderness then skip
-		if (!locationManager.isInWilderness()){
+		// If the player is not in the wilderness, then skip
+		if (!locationManager.isInWilderness())
+		{
 			return;
 		}
 
 		Actor target = interactingChanged.getTarget();
 		Actor source = interactingChanged.getSource();
 
-		//if the player has been attacked/interacted with
+		// If the player has been attacked/interacted with
 		if (target instanceof Player && source instanceof Player
-			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName()))
+		{
 			combatManager.onAnimationOrInteractionChange((Player) source, gameTickCounter, false);
 		}
 	}
 
+	/**
+	 * This event is triggered when a hitsplat is applied to an actor.
+	 *
+	 * @param hitsplatApplied The event that indicates a hitsplat has been applied.
+	 */
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
-		//if the local player is not in the wilderness or if the player hit is the local player
+		// If the local player is not in the wilderness or if the player hit is the local player
 		if (!locationManager.isInWilderness() || hitsplatApplied.getActor().getName() != null &&
-			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName()))
+		{
 			return;
 		}
 
-		//if the player attacks a player in the wilderness, and they have a skull icon
+		// If the player attacks a player in the wilderness, and they have a skull icon
 		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
-			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
+		{
 			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTickCounter);
 		}
 	}
 
+	/**
+	 * This event is triggered when an animation changes for an actor.
+	 *
+	 * @param animationChanged The event that indicates an animation has changed.
+	 */
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1){
+		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1)
+		{
 			return;
 		}
 
@@ -266,32 +306,50 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * This event is triggered when a player despawns.
+	 *
+	 * @param playerDespawned The event that indicates a player has despawned.
+	 */
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
 		Player player = playerDespawned.getPlayer();
 
-		if (player == null || player.getName() == null || !combatManager.getCombatRecords().containsKey(player.getName())) {
+		if (player == null || player.getName() == null || !combatManager.getCombatRecords().containsKey(player.getName()))
+		{
 			return;
 		}
 
 		String playerName = player.getName();
 		CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
 
-		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
+		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD)
+		{
 			log.debug("Player {} despawned. Target has been set to dead status.", playerName);
-		} else if (combatInteraction.hasRetaliated()) {
+		}
+		else if (combatInteraction.hasRetaliated())
+		{
 			log.debug("Player {} was in combat. Target has been set to inactive.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.INACTIVE);
-		} else if (locationManager.hasPlayerLoggedOut(player)){
+		}
+		else if (locationManager.hasPlayerLoggedOut(player))
+		{
 			log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
-		}  else {
+		}
+		else
+		{
 			log.debug("Player {} combat status set to unknown.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.UNCERTAIN);
 		}
 	}
 
+	/**
+	 * This event is triggered when an actor dies.
+	 *
+	 * @param actorDeath The event that indicates an actor has died.
+	 */
 	@Subscribe
 	public void onActorDeath(ActorDeath actorDeath)
 	{
@@ -299,29 +357,45 @@ public class SkullTimerPlugin extends Plugin
 		{
 			String playerName = actorDeath.getActor().getName();
 			//if the local player is the one who is killed, then remove all attacker logs (as this is reset)
-			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName())){
+			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName()))
+			{
 				log.debug("Player {} has died, resetting combat records.", playerName);
 				combatManager.clearRecords();
-			//if the player has killed their target, update their status
-			} else if (combatManager.getCombatRecords().containsKey(playerName)) {
+				//if the player has killed their target, update their status
+			}
+			else if (combatManager.getCombatRecords().containsKey(playerName))
+			{
 				log.debug("Player {} has died, updating combat status to dead.", playerName);
 				CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
-				if (combatInteraction != null){
+				if (combatInteraction != null)
+				{
 					combatInteraction.setCombatStatus(CombatStatus.DEAD);
 				}
 			}
 		}
 	}
 
+	/**
+	 * This event is triggered when the configuration changes.
+	 *
+	 * @param configChanged The event that indicates the configuration has changed.
+	 */
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (timerManager.getTimer() != null) {
+		if (timerManager.getTimer() != null)
+		{
 			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), false);
 		}
 		combatManager.setPVPEnabled(config.pvpToggle());
 	}
 
+	/**
+	 * Provides the configuration for the Skull Timer plugin.
+	 *
+	 * @param configManager The configuration manager.
+	 * @return The Skull Timer configuration.
+	 */
 	@Provides
 	SkullTimerConfig provideConfig(ConfigManager configManager)
 	{

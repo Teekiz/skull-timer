@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A list of weapon categories to be used in place of concrete weapon implementations in the event a weapon type cannot be found.
  */
 
+@Slf4j
 @Getter
 public enum GenericWeapons
 {
@@ -38,10 +40,15 @@ public enum GenericWeapons
 
 	public static WeaponHitDelay getWeaponTypeHitDelay(String weaponName)
 	{
+		if (weaponName.isEmpty()){
+			return null;
+		}
+
 		String weaponNameLowerCase = weaponName.toLowerCase();
 
 		for (String key : weaponLookupMap.keySet()) {
 			if (weaponNameLowerCase.contains(key)) {
+				log.debug("Generic weapon type found. Hit Delay: {}.", weaponLookupMap.get(key));
 				return weaponLookupMap.get(key);
 			}
 		}

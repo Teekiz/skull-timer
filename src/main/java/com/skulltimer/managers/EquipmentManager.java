@@ -31,6 +31,7 @@ import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.GenericWeapons;
+import com.skulltimer.enums.equipment.SpellAnimations;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.enums.equipment.Weapons;
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.client.game.ItemManager;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An object that is used to check a players worn equipment to identify if a skull timer is required.
@@ -276,10 +276,13 @@ public class EquipmentManager
 
 		if (weapon == null){
 			String weaponName = itemManager.getItemComposition(weaponID).getName();
-			if (StringUtils.isNotBlank(weaponName)){
-				return GenericWeapons.getWeaponTypeHitDelay(weaponName);
+			WeaponHitDelay weaponHitDelay = GenericWeapons.getWeaponTypeHitDelay(weaponName);
+
+			if (weaponHitDelay != null){
+				return weaponHitDelay;
 			}
-			return null;
+
+			return SpellAnimations.getSpellHitDelay(animationID);
 		}
 
 		//if the sensitivity is low and the weapon id does not match, do not proceed.
@@ -293,5 +296,4 @@ public class EquipmentManager
 			? weapon.getSpecialHitDelay()
 			: weapon.getStandardHitDelay();
 	}
-
 }

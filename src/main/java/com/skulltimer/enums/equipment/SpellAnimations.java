@@ -2,9 +2,11 @@ package com.skulltimer.enums.equipment;
 
 import java.util.Set;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 //todo - teleblock
 
+@Slf4j
 @Getter
 public enum SpellAnimations
 {
@@ -43,6 +45,7 @@ public enum SpellAnimations
 	public static WeaponHitDelay getSpellHitDelay(int animationID){
 		for (SpellAnimations animation : SpellAnimations.values()){
 			if (animation.getAnimationIDs().contains(animationID)){
+				log.debug("Spell animation found. Hit Delay: {}.", animation.getWeaponHitDelay());
 				return animation.getWeaponHitDelay();
 			}
 		}

@@ -30,10 +30,6 @@ import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
-import com.skulltimer.enums.config.Sensitivity;
-import com.skulltimer.enums.equipment.GenericWeapons;
-import com.skulltimer.enums.equipment.WeaponHitDelay;
-import com.skulltimer.enums.equipment.Weapons;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,8 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import com.skulltimer.SkulledTimer;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
-import net.runelite.client.game.ItemManager;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.skulltimer.data.PlayerInteraction.defaultTickValue;
 
@@ -54,29 +48,24 @@ import static com.skulltimer.data.PlayerInteraction.defaultTickValue;
 @Slf4j
 public class CombatManager
 {
+	@Inject
+	private final SkullTimerConfig config;
 	private final TimerManager timerManager;
 	@Getter
 	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
 	private final HashMap<String, PlayerInteraction> interactionRecords;
-	@Inject
-	private final ItemManager itemManager;
-	@Inject
-	private final SkullTimerConfig config;
-
 	/**
 	 * The constructor for a {@link CombatManager} object.
-	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 * @param config The configuration file for the {@link SkullTimerPlugin}.
-	 * @param itemManager Runelite's {@link ItemManager} object.
+	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
-	public CombatManager(TimerManager timerManager, SkullTimerConfig config, ItemManager itemManager)
+	public CombatManager(SkullTimerConfig config, TimerManager timerManager)
 	{
-		this.timerManager = timerManager;
 		this.config = config;
+		this.timerManager = timerManager;
 		this.combatRecords = new HashMap<>();
 		this.interactionRecords = new HashMap<>();
-		this.itemManager = itemManager;
 	}
 
 	/**
@@ -291,35 +280,6 @@ public class CombatManager
 		}
 
 		interaction.setExpectedHitTick(expectedHitTick);
-	}
-
-	/**
-	 * A method used to determine the correct weapon hit delay based on the weapon ID and animation ID.
-	 * @param weaponID The ID of the weapon currently equipped by the player.
-	 * @param animationID The ID of the animation started by the player.
-	 * @return The corresponding {@link WeaponHitDelay}. If the weapon cannot be found, {@code null} is returned instead.
-	 */
-	public WeaponHitDelay getWeaponHitDelay(int weaponID, int animationID){
-		Weapons weapon = Weapons.getByItemID(weaponID);
-
-		if (weapon == null){
-			String weaponName = itemManager.getItemComposition(weaponID).getName();
-			if (StringUtils.isNotBlank(weaponName)){
-				return GenericWeapons.getWeaponTypeHitDelay(weaponName);
-			}
-			return null;
-		}
-
-		//if the sensitivity is low and the weapon id does not match, do not proceed.
-		if (config.sensitivity() == Sensitivity.LOW && !weapon.getWeaponAnimations().doesIDMatchAnimation(animationID)) {
-			log.debug("Animation does not match any known weapon IDs. Discarding animation.");
-			return null;
-		}
-
-		return (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE
-			&& weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(animationID))
-			? weapon.getSpecialHitDelay()
-			: weapon.getStandardHitDelay();
 	}
 
 	/**

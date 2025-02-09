@@ -120,7 +120,7 @@ public class AnimationChangedEventTest extends PluginMocks
 
 		when(player.getPlayerComposition()).thenReturn(playerComposition);
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
-		when(combatManager.getWeaponHitDelay(1289, 100)).thenReturn(WeaponHitDelay.MELEE_STANDARD);
+		when(equipmentManager.getWeaponHitDelay(1289, 100)).thenReturn(WeaponHitDelay.MELEE_STANDARD);
 
 		when(locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player)).thenReturn(10);
 

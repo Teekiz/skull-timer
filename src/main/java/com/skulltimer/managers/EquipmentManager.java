@@ -24,9 +24,15 @@
 
 package com.skulltimer.managers;
 
+import com.skulltimer.SkullTimerConfig;
+import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.config.Sensitivity;
+import com.skulltimer.enums.equipment.GenericWeapons;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
+import com.skulltimer.enums.equipment.Weapons;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +45,8 @@ import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.client.game.ItemManager;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * An object that is used to check a players worn equipment to identify if a skull timer is required.
@@ -49,6 +57,10 @@ public class EquipmentManager
 {
 	@Inject
 	private final Client client;
+	@Inject
+	private final SkullTimerConfig config;
+	@Inject
+	private final ItemManager itemManager;
 	private final TimerManager timerManager;
 	/** A {@link HashMap} value that is changed when a player equips an item which provides a skull (e.g. amulet of avarice). */
 	private final HashMap<Integer, Item> equippedItems;
@@ -56,11 +68,15 @@ public class EquipmentManager
 	/**
 	 * The constructor for a {@link EquipmentManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
+	 * @param itemManager Runelite's {@link ItemManager} object.
 	 */
-	public EquipmentManager(Client client, TimerManager timerManager) {
+	public EquipmentManager(Client client, SkullTimerConfig config, TimerManager timerManager, ItemManager itemManager) {
 		this.client = client;
+		this.config = config;
 		this.timerManager = timerManager;
+		this.itemManager = itemManager;
 		this.equippedItems = new HashMap<>();
 
 		//gets the previously worn items in contained item slots.
@@ -247,6 +263,35 @@ public class EquipmentManager
 
 		log.debug("Player is not wearing any equipment that provides a permanent skull. Returning false.");
 		return true;
+	}
+
+	/**
+	 * A method used to determine the correct weapon hit delay based on the weapon ID and animation ID.
+	 * @param weaponID The ID of the weapon currently equipped by the player.
+	 * @param animationID The ID of the animation started by the player.
+	 * @return The corresponding {@link WeaponHitDelay}. If the weapon cannot be found, {@code null} is returned instead.
+	 */
+	public WeaponHitDelay getWeaponHitDelay(int weaponID, int animationID){
+		Weapons weapon = Weapons.getByItemID(weaponID);
+
+		if (weapon == null){
+			String weaponName = itemManager.getItemComposition(weaponID).getName();
+			if (StringUtils.isNotBlank(weaponName)){
+				return GenericWeapons.getWeaponTypeHitDelay(weaponName);
+			}
+			return null;
+		}
+
+		//if the sensitivity is low and the weapon id does not match, do not proceed.
+		if (config.sensitivity() == Sensitivity.LOW && !weapon.getWeaponAnimations().doesIDMatchAnimation(animationID)) {
+			log.debug("Animation does not match any known weapon IDs. Discarding animation.");
+			return null;
+		}
+
+		return (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE
+			&& weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(animationID))
+			? weapon.getSpecialHitDelay()
+			: weapon.getStandardHitDelay();
 	}
 
 }

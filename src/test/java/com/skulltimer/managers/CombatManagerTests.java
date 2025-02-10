@@ -2,9 +2,12 @@ package com.skulltimer.managers;
 
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.data.PlayerInteraction;
+import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import java.util.HashMap;
+import net.runelite.api.GraphicID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +32,8 @@ public class CombatManagerTests extends TimerMocks
 	@Mock
 	Player localPlayer;
 
+	HashMap<String, PlayerInteraction> expectedInteractions;
+
 	PlayerInteraction playerInteraction;
 	CombatInteraction combatInteraction;
 
@@ -43,6 +48,7 @@ public class CombatManagerTests extends TimerMocks
 	public void startUp()
 	{
 		when(player.getName()).thenReturn("PlayerOne");
+		expectedInteractions = new HashMap<>();
 	}
 
 	@Test
@@ -266,7 +272,7 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void setExpectedHitTick_WithNullRecord()
 	{
-		combatManager.setExpectedHitTick(player.getName(), 2);
+		combatManager.setExpectedHitTick(player.getName(), 2, AttackType.OTHER);
 	}
 
 	@Test
@@ -274,53 +280,105 @@ public class CombatManagerTests extends TimerMocks
 	{
 		playerInteraction = new PlayerInteraction();
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.setExpectedHitTick(player.getName(), 2);
+		combatManager.setExpectedHitTick(player.getName(), 2, AttackType.MELEE);
 		assertEquals(2, playerInteraction.getTickNumberOfExpectedHit());
 	}
 
 	@Test
-	public void onPlayerHitSplat_TickNumberLowerThanCurrentTick()
+	public void onTickOfExpectedHit_TickNumberLowerThanCurrentTick()
 	{
 		playerInteraction = new PlayerInteraction();
 		playerInteraction.setExpectedHitTick(1);
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.onPlayerHitSplat(3);
+		expectedInteractions.put(player.getName(), playerInteraction);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, true);
 
-		assertEquals(0, combatManager.getCombatRecords().size());
+		assertEquals(1, combatManager.getCombatRecords().size());
 	}
 
 	@Test
-	public void onPlayerHitSplat_TickNumberEqualToCurrentTick()
+	public void onTickOfExpectedHit_TickNumberEqualToCurrentTick()
 	{
 		playerInteraction = new PlayerInteraction();
 		playerInteraction.setExpectedHitTick(3);
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.onPlayerHitSplat(3);
+		expectedInteractions.put(player.getName(), playerInteraction);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, true);
 
 		assertEquals(1, combatManager.getCombatRecords().size());
 		verify(combatManager, times(1)).onConfirmedInCombat(player.getName());
 	}
 
 	@Test
-	public void onPlayerHitSplat_TickNumberGreaterThanCurrentTick()
+	public void onTickOfExpectedHit_TickNumberGreaterThanCurrentTick()
 	{
 		playerInteraction = new PlayerInteraction();
 		playerInteraction.setExpectedHitTick(4);
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.onPlayerHitSplat(3);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, true);
 
 		assertEquals(1, combatManager.getInteractionRecords().size());
 		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
 	}
 
 	@Test
-	public void onPlayerHitSplat_TickNumberSetToDefault()
+	public void onTickOfExpectedHit_TickNumberSetToDefault()
 	{
 		playerInteraction = new PlayerInteraction();
 		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
-		combatManager.onPlayerHitSplat(3);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, true);
 
 		assertEquals(1, combatManager.getInteractionRecords().size());
 		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
+	}
+
+	@Test
+	public void onTickOfExpectedHitSplat_NoHit()
+	{
+		playerInteraction = new PlayerInteraction();
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		playerInteraction.setExpectedHitTick(3);
+		playerInteraction.setAttackType(AttackType.MELEE);
+		expectedInteractions.put(player.getName(), playerInteraction);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, false);
+
+		assertEquals(1, combatManager.getInteractionRecords().size());
+		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
+	}
+
+	@Test
+	public void onTickOfExpectedHitSplat_NoHit_WithMagicAttack_NoSplash()
+	{
+		playerInteraction = new PlayerInteraction();
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		playerInteraction.setExpectedHitTick(3);
+		playerInteraction.setAttackType(AttackType.MAGIC);
+
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(false);
+
+		expectedInteractions.put(player.getName(), playerInteraction);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, false);
+
+		assertEquals(1, combatManager.getInteractionRecords().size());
+		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
+	}
+
+	@Test
+	public void onTickOfExpectedHitSplat_NoHit_WithMagicAttack_WithSplash()
+	{
+		playerInteraction = new PlayerInteraction();
+		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
+		playerInteraction.setExpectedHitTick(3);
+		playerInteraction.setAttackType(AttackType.MAGIC);
+
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(true);
+
+		expectedInteractions.put(player.getName(), playerInteraction);
+		combatManager.onTickOfExpectedHit(3, expectedInteractions, false);
+
+		assertEquals(1, combatManager.getInteractionRecords().size());
+		verify(combatManager, times(1)).onConfirmedInCombat(player.getName());
 	}
 }

@@ -25,18 +25,19 @@ package com.skulltimer;
 
 import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
+import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.config.Sensitivity;
-import com.skulltimer.enums.equipment.GenericWeapons;
+import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
-import com.skulltimer.enums.equipment.Weapons;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
 import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
+import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -99,8 +100,8 @@ public class SkullTimerPlugin extends Plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
-		equipmentManager = new EquipmentManager(client, timerManager);
-		combatManager = new CombatManager(timerManager, config, itemManager);
+		equipmentManager = new EquipmentManager(client, config, timerManager, itemManager);
+		combatManager = new CombatManager(client, config, timerManager);
 
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
@@ -164,9 +165,10 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
-		if (hasHitSplatOccurred){
+		Map<String, PlayerInteraction> expectedHits = combatManager.getExpectedHits(gameTickCounter);
+		if (!expectedHits.isEmpty()){
+			combatManager.onTickOfExpectedHit(gameTickCounter, expectedHits, hasHitSplatOccurred);
 			hasHitSplatOccurred = false;
-			combatManager.onPlayerHitSplat(gameTickCounter);
 		}
 
 		gameTickCounter++;
@@ -283,14 +285,15 @@ public class SkullTimerPlugin extends Plugin
 
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
 		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
-		WeaponHitDelay weaponHitDelay = combatManager.getWeaponHitDelay(weaponID, animationID);
+		WeaponHitDelay weaponHitDelay = equipmentManager.getWeaponHitDelay(weaponID, animationID);
 
 		if (weaponHitDelay == null){
 			log.warn("Weapon {} does not exist in weapons table.", weaponID);
 		} else {
 			int hitDelay = weaponHitDelay.calculateHitDelay(distance);
-			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}).", player.getName(), weaponID, distance, hitDelay, gameTickCounter);
-			combatManager.setExpectedHitTick(player.getName(), gameTickCounter + hitDelay);
+			AttackType attackType = weaponHitDelay.getAttackType();
+			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}, attack type: {}).", player.getName(), weaponID, distance, hitDelay, gameTickCounter, attackType);
+			combatManager.setExpectedHitTick(player.getName(), gameTickCounter + hitDelay, attackType);
 		}
 	}
 

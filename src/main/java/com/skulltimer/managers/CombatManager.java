@@ -30,13 +30,15 @@ import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.AttackType;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import com.skulltimer.SkulledTimer;
+import net.runelite.api.Client;
+import net.runelite.api.GraphicID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
 
@@ -49,6 +51,8 @@ import static com.skulltimer.data.PlayerInteraction.defaultTickValue;
 public class CombatManager
 {
 	@Inject
+	private final Client client;
+	@Inject
 	private final SkullTimerConfig config;
 	private final TimerManager timerManager;
 	@Getter
@@ -57,11 +61,13 @@ public class CombatManager
 	private final HashMap<String, PlayerInteraction> interactionRecords;
 	/**
 	 * The constructor for a {@link CombatManager} object.
+	 * @param client Runelite's {@link Client} object.
 	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
-	public CombatManager(SkullTimerConfig config, TimerManager timerManager)
+	public CombatManager(Client client, SkullTimerConfig config, TimerManager timerManager)
 	{
+		this.client = client;
 		this.config = config;
 		this.timerManager = timerManager;
 		this.combatRecords = new HashMap<>();
@@ -175,6 +181,11 @@ public class CombatManager
 			log.debug("Player {} exists in interaction records. Upgrading to attacker.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
 		}
+
+		PlayerInteraction playerInteraction = interactionRecords.get(playerName);
+		if (playerInteraction != null){
+			playerInteraction.setTickNumberOfExpectedHit(defaultTickValue);
+		}
 		//interactionRecords.remove(playerName);
 	}
 
@@ -243,43 +254,76 @@ public class CombatManager
 	}
 
 	/**
-	 * A method that is used to check if a hitsplat has occurred when it was expected to.
+	 * A method that is used to check if a hitsplat or splash has occurred when it was expected to.
 	 * @param currentTick The current tick number.
+	 * @param expectedInteractions A map of interactions that were expected to occur on {@code currentTick}.
+	 * @param didHitSplatOccur A boolean to determine if a hitsplat occurred.
 	 */
-	public void onPlayerHitSplat(int currentTick)
+	public void onTickOfExpectedHit(int currentTick, Map<String, PlayerInteraction> expectedInteractions, boolean didHitSplatOccur)
 	{
-		Map<String, PlayerInteraction> expectedInteractions = interactionRecords.entrySet().stream()
-			.filter(entry -> entry.getValue().getTickNumberOfExpectedHit() <= currentTick
-				&& entry.getValue().getTickNumberOfExpectedHit() != defaultTickValue)
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
 		for (Map.Entry<String, PlayerInteraction> interactions : expectedInteractions.entrySet()){
 			String playerName = interactions.getKey();
-			int expectedHit = interactions.getValue().getTickNumberOfExpectedHit();
+			PlayerInteraction playerInteraction = interactions.getValue();
+			int expectedHit = playerInteraction.getTickNumberOfExpectedHit();
+			boolean isSplashHit = playerInteraction.doesApplySplash() && client.getLocalPlayer().hasSpotAnim(GraphicID.SPLASH);
+
 			//If the hit occurred either now or one tick late (because of the processing order delay), the attack will count as an attack
-			if (currentTick == expectedHit || currentTick - 1 == expectedHit){
-				log.debug("Expected hit for player {} has occurred.", playerName);
+			if (didHitSplatOccur) {
+				log.debug("Expected hit for player {} has occurred (current tick: {})", playerName, currentTick);
 				onConfirmedInCombat(playerName);
-			} else {
-				log.debug("Expected hit for player {} has expired (Expected: {} Current: {}). Removing from interaction records.", playerName, expectedHit, currentTick);
+			}
+			//If there was not a hit, but the attack was magic based and splash was applied (and it was still within the expected time), this will also count
+			else if (isSplashHit) {
+				log.debug("Expected splash for player {} has occurred. (current tick: {}).", playerName, currentTick);
+				onConfirmedInCombat(playerName);
+			}
+			//Due to PID delay, the attack can be delayed, so waiting an extra tick extra prevents premature deletion.
+			else if (expectedHit == currentTick){
+					log.debug("Expected hit for player {} did not occur (Expected: {} Current: {}).", playerName, expectedHit, currentTick);
+			}
+			//Remove the record.
+			else {
+				log.debug("Expected hit for player {} did not occur (Expected: {} Current: {}). Removing record.", playerName, expectedHit, currentTick);
 				interactionRecords.remove(playerName);
 			}
 		}
 	}
 
 	/**
+	 * A method used to get the expected hits on a given tick.
+	 * @param currentTick The number of the current tick.
+	 * @return A {@link HashMap} of player names and {@link PlayerInteraction} of records that are below or equal to {@code currentTick} and are not set to default.
+	 */
+	public Map<String, PlayerInteraction> getExpectedHits(int currentTick)
+	{
+		Map<String, PlayerInteraction> expectedInteractions = new HashMap<>();
+		for (Map.Entry<String, PlayerInteraction> entry : interactionRecords.entrySet()) {
+			PlayerInteraction interaction = entry.getValue();
+			if ((interaction.getTickNumberOfExpectedHit() == currentTick ||
+				interaction.getTickNumberOfExpectedHit() == currentTick - 1)  &&
+				interaction.getTickNumberOfExpectedHit() != defaultTickValue) {
+				expectedInteractions.put(entry.getKey(), interaction);
+			}
+		}
+		return expectedInteractions;
+	}
+
+	/**
 	 * A method used to set the expected hit value when an attack occurs.
 	 * @param playerName The name of the player who started the animation.
 	 * @param expectedHitTick The tick number of when the attack can be expected to land.
+	 * @param attackType The type of attack style the hit applied.
 	 */
-	public void setExpectedHitTick(String playerName, int expectedHitTick){
+	public void setExpectedHitTick(String playerName, int expectedHitTick, AttackType attackType){
 		PlayerInteraction interaction = interactionRecords.get(playerName);
 
-		if (interaction == null) {
+		//this is so that faster weapons do not override the existing attacks.
+		if (interaction == null || interaction.getTickNumberOfExpectedHit() != defaultTickValue) {
 			return;
 		}
 
 		interaction.setExpectedHitTick(expectedHitTick);
+		interaction.setAttackType(attackType);
 	}
 
 	/**

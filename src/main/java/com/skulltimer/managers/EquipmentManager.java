@@ -272,17 +272,19 @@ public class EquipmentManager
 	 * @return The corresponding {@link WeaponHitDelay}. If the weapon cannot be found, {@code null} is returned instead.
 	 */
 	public WeaponHitDelay getWeaponHitDelay(int weaponID, int animationID){
+		//checks to see if the animation matches a spell animation.
+		WeaponHitDelay spellHitDelay = SpellAnimations.getSpellHitDelay(animationID);
+
+		//if it does, return the hit delay for that spell.
+		if (spellHitDelay != null){
+			return spellHitDelay;
+		}
+
 		Weapons weapon = Weapons.getByItemID(weaponID);
 
 		if (weapon == null){
 			String weaponName = itemManager.getItemComposition(weaponID).getName();
-			WeaponHitDelay weaponHitDelay = GenericWeapons.getWeaponTypeHitDelay(weaponName);
-
-			if (weaponHitDelay != null){
-				return weaponHitDelay;
-			}
-
-			return SpellAnimations.getSpellHitDelay(animationID);
+			return GenericWeapons.getWeaponTypeHitDelay(weaponName);
 		}
 
 		//if the sensitivity is low and the weapon id does not match, do not proceed.

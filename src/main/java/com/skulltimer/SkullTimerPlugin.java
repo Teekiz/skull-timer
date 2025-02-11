@@ -165,9 +165,8 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
-		Map<String, PlayerInteraction> expectedHits = combatManager.getExpectedHits(gameTickCounter);
-		if (!expectedHits.isEmpty()){
-			combatManager.onTickOfExpectedHit(gameTickCounter, expectedHits, hasHitSplatOccurred);
+		if (combatManager.getAttackRecords().containsKey(gameTickCounter)){
+			combatManager.onTickOfExpectedHit(gameTickCounter, hasHitSplatOccurred);
 			hasHitSplatOccurred = false;
 		}
 
@@ -268,6 +267,7 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
+		//todo - get excluded animations
 		Actor actor = animationChanged.getActor();
 
 		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1 ||
@@ -293,7 +293,7 @@ public class SkullTimerPlugin extends Plugin
 			int hitDelay = weaponHitDelay.calculateHitDelay(distance);
 			AttackType attackType = weaponHitDelay.getAttackType();
 			log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}, attack type: {}).", player.getName(), weaponID, distance, hitDelay, gameTickCounter, attackType);
-			combatManager.setExpectedHitTick(player.getName(), gameTickCounter + hitDelay, attackType);
+			combatManager.addExpectedHitTick(player.getName(), gameTickCounter + hitDelay, attackType);
 		}
 	}
 

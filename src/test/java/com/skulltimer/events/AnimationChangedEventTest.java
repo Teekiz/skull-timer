@@ -126,7 +126,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player)).thenReturn(10);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(1)).setExpectedHitTick(player.getName(), 0, AttackType.MELEE);
+		verify(combatManager, times(1)).addExpectedHitTick(player.getName(), 0, AttackType.MELEE);
 	}
 
 	@Test
@@ -144,6 +144,6 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(0);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).setExpectedHitTick(anyString(), anyInt(), any(AttackType.class));
+		verify(combatManager, times(0)).addExpectedHitTick(anyString(), anyInt(), any(AttackType.class));
 	}
 }

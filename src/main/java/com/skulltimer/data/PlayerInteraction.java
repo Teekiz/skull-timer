@@ -37,9 +37,6 @@ public class PlayerInteraction
 	private int tickNumberOfLastAnimation = defaultTickValue;
 	private int tickNumberOfLastInteraction = defaultTickValue;
 
-	private int tickNumberOfExpectedHit = -1;
-	private AttackType attackType;
-
 	public void setAnimationTick(int tick){
 		if (tick >= 0){
 			tickNumberOfLastAnimation = tick;
@@ -49,12 +46,6 @@ public class PlayerInteraction
 	public void setInteractionTick(int tick){
 		if (tick >= 0){
 			tickNumberOfLastInteraction = tick;
-		}
-	}
-
-	public void setExpectedHitTick(int tick){
-		if (tick >= 0){
-			tickNumberOfExpectedHit = tick;
 		}
 	}
 
@@ -68,14 +59,5 @@ public class PlayerInteraction
 		return tickNumberOfLastInteraction != -1
 			&& tickNumberOfLastAnimation != -1
 			&& tickNumberOfLastInteraction == tickNumberOfLastAnimation;
-	}
-
-	/**
-	 * A boolean to check if the weapon type used to attack
-	 * @return {@code true} if the attack type can splash (i.e. magic). Otherwise, returns {@code false}.
-	 */
-	public boolean doesApplySplash()
-	{
-		return attackType == AttackType.MAGIC;
 	}
 }

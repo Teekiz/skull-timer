@@ -67,6 +67,7 @@ public class AnimationChangedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(true);
 		when(animationChanged.getActor()).thenReturn(localPlayer);
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
 		eventBus.post(animationChanged);

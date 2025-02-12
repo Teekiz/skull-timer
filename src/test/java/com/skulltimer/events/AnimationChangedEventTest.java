@@ -43,17 +43,6 @@ public class AnimationChangedEventTest extends PluginMocks
 	}
 
 	@Test
-	public void playerAnimationIsDefensive()
-	{
-		when(locationManager.isInWilderness()).thenReturn(true);
-		when(animationChanged.getActor()).thenReturn(player);
-		when(player.getAnimation()).thenReturn(-1);
-
-		eventBus.post(animationChanged);
-		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
-	}
-
-	@Test
 	public void actorIsNull()
 	{
 		when(locationManager.isInWilderness()).thenReturn(true);
@@ -68,7 +57,6 @@ public class AnimationChangedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(true);
 		when(animationChanged.getActor()).thenReturn(npc);
-		when(npc.getAnimation()).thenReturn(100);
 
 		eventBus.post(animationChanged);
 		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
@@ -79,8 +67,6 @@ public class AnimationChangedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(true);
 		when(animationChanged.getActor()).thenReturn(localPlayer);
-		when(localPlayer.getAnimation()).thenReturn(100);
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
 		eventBus.post(animationChanged);
@@ -139,6 +125,21 @@ public class AnimationChangedEventTest extends PluginMocks
 
 		when(player.getPlayerComposition()).thenReturn(playerComposition);
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(0);
+
+		eventBus.post(animationChanged);
+		verify(combatManager, times(0)).addExpectedHitTick(anyString(), anyInt(), any(AttackType.class));
+	}
+
+	@Test
+	public void excludedAnimation()
+	{
+		when(locationManager.isInWilderness()).thenReturn(true);
+		when(animationChanged.getActor()).thenReturn(player);
+		when(player.getName()).thenReturn("Player");
+		when(player.getAnimation()).thenReturn(424);
+
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
 		eventBus.post(animationChanged);
 		verify(combatManager, times(0)).addExpectedHitTick(anyString(), anyInt(), any(AttackType.class));

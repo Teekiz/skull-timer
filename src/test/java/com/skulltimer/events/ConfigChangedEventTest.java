@@ -29,7 +29,6 @@ public class ConfigChangedEventTest extends PluginMocks
 	{
 		eventBus.post(configChanged);
 		verify(timerManager, never()).addTimer(any(Duration.class), anyBoolean());
-		verify(combatManager, times(1)).setPVPEnabled(anyBoolean());
 	}
 
 	@Test
@@ -38,6 +37,5 @@ public class ConfigChangedEventTest extends PluginMocks
 		when(timerManager.getTimer()).thenReturn(skulledTimer);
 		eventBus.post(configChanged);
 		verify(timerManager, times(1)).addTimer(any(Duration.class), anyBoolean());
-		verify(combatManager, times(1)).setPVPEnabled(anyBoolean());
 	}
 }

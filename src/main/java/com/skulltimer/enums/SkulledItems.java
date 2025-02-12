@@ -42,7 +42,8 @@ public enum SkulledItems
 	/** A {@link Boolean} to check if the item provides a skull for an unlimited amount of time while equipped. */
 	private final boolean isSkullIndefinite;
 
-	SkulledItems(int itemID, int itemSlot, boolean isSkullIndefinite){
+	SkulledItems(int itemID, int itemSlot, boolean isSkullIndefinite)
+	{
 		this.itemID = itemID;
 		this.itemSlot = itemSlot;
 		this.isSkullIndefinite = isSkullIndefinite;

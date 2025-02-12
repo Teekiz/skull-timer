@@ -81,15 +81,20 @@ public class TimerManager
 	 */
 	public void addTimer(Duration timerDuration, boolean useCautiousTimer) throws IllegalArgumentException
 	{
-		if (shouldTimerBeUpdated(timerDuration)) {
+		if (shouldTimerBeUpdated(timerDuration))
+		{
 			//removes the timer if a timer is already created.
 			removeTimer(false);
 
-			if (!timerDuration.isNegative() && !timerDuration.isZero()) {
-				if (config.cautiousTimerToggle() && useCautiousTimer){
+			if (!timerDuration.isNegative() && !timerDuration.isZero())
+			{
+				if (config.cautiousTimerToggle() && useCautiousTimer)
+				{
 					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColourCautious(), config.warningTextColourCautious(), true);
 					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE.");
-				} else {
+				}
+				else
+				{
 					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour(), false);
 					timer.setTooltip("Time left until your character becomes unskulled.");
 
@@ -116,7 +121,9 @@ public class TimerManager
 			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
 			config.cautiousTimer(timer != null && timer.isCautious());
-		} else {
+		}
+		else
+		{
 			config.skullDuration(Duration.ZERO);
 			config.cautiousTimer(timer != null && timer.isCautious());
 		}
@@ -131,8 +138,10 @@ public class TimerManager
 	 * @param newDuration The new {@link Duration} to replace the existing timers' duration.
 	 * @return Returns {@code true} if the new duration is greater than the existing timer or if {@code timer} is null. Returns {@code false} if the new duration is lower than or equal to the old duration.
 	 */
-	private boolean shouldTimerBeUpdated(Duration newDuration){
-		if (timer != null && timer.getRemainingTime().compareTo(newDuration) > 0){
+	private boolean shouldTimerBeUpdated(Duration newDuration)
+	{
+		if (timer != null && timer.getRemainingTime().compareTo(newDuration) > 0)
+		{
 			log.debug("Existing timer {} exceeds the duration of the proposed new timer {}. The timer will not be updated.", timer.getRemainingTime(), newDuration);
 			return false;
 		}

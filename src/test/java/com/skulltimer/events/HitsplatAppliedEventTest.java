@@ -72,11 +72,7 @@ public class HitsplatAppliedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(true);
 		when(hitsplatApplied.getActor()).thenReturn(npc);
-		when(hitsplatApplied.getHitsplat()).thenReturn(hitsplat);
 		when(npc.getName()).thenReturn("npc");
-
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.getName()).thenReturn("NotPlayer");
 
 		eventBus.post(hitsplatApplied);
 		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
@@ -114,5 +110,17 @@ public class HitsplatAppliedEventTest extends PluginMocks
 
 		eventBus.post(hitsplatApplied);
 		verify(combatManager, times(1)).onTargetHitsplat(player, localPlayer, 0);
+	}
+
+	@Test
+	public void HitSplatOnLocalPlayer()
+	{
+		when(locationManager.isInWilderness()).thenReturn(true);
+		when(localPlayer.getName()).thenReturn("Player");
+		when(hitsplatApplied.getActor()).thenReturn(localPlayer);
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+
+		eventBus.post(hitsplatApplied);
+		verify(combatManager, times(0)).onTargetHitsplat(player, localPlayer, 0);
 	}
 }

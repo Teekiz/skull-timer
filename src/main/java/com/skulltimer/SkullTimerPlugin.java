@@ -27,6 +27,9 @@ import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.AttackType;
+import com.skulltimer.enums.equipment.ExcludedAnimations;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.LocationManager;
@@ -51,6 +54,7 @@ import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.events.PlayerDespawned;
+import net.runelite.api.kit.KitType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -84,6 +88,7 @@ public class SkullTimerPlugin extends Plugin
 	private CombatManager combatManager;
 	private StatusManager statusManager;
 	private int gameTickCounter;
+	private boolean hasHitSplatOccurred;
 
 	@Override
 	protected void startUp() throws Exception
@@ -91,14 +96,13 @@ public class SkullTimerPlugin extends Plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
-		equipmentManager = new EquipmentManager(client, timerManager);
-		combatManager = new CombatManager(timerManager, config);
+		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
+		combatManager = new CombatManager(client, config, timerManager);
 
 		gameTickCounter = 0;
+		hasHitSplatOccurred = false;
 
-		clientThread.invoke(() -> {
-			equipmentManager.updateCurrentEquipment();
-		});
+		clientThread.invoke(() -> equipmentManager.updateCurrentEquipment());
 	}
 
 	@Override
@@ -118,7 +122,8 @@ public class SkullTimerPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
-			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss()) {
+			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
+			{
 				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
 			}
 			//sets the initial state of the equipment checker.
@@ -127,7 +132,8 @@ public class SkullTimerPlugin extends Plugin
 		//logged out or hopping - stop timer
 		else if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING)
 		{
-			if (timerManager.getTimer() != null){
+			if (timerManager.getTimer() != null)
+			{
 				log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
 				timerManager.removeTimer(true);
 			}
@@ -155,22 +161,34 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
+		if (combatManager.getAttackRecords().containsKey(gameTickCounter))
+		{
+			combatManager.onTickOfExpectedHit(gameTickCounter, hasHitSplatOccurred);
+			hasHitSplatOccurred = false;
+		}
+
 		gameTickCounter++;
 		statusManager.checkSkulledStatus();
 
 		SkulledTimer skulledTimer = timerManager.getTimer();
 		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
 
-		if (skulledTimer == null){
+		if (skulledTimer == null)
+		{
 			return;
 		}
 
 		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime())) {
+		if (Instant.now().isAfter(skulledTimer.getEndTime()))
+		{
 			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
-		} else if (playerHasNoSkullIcon){
+		}
+		else if (playerHasNoSkullIcon)
+		{
 			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
-		} else {
+		}
+		else
+		{
 			return;
 		}
 
@@ -186,8 +204,10 @@ public class SkullTimerPlugin extends Plugin
 	{
 		// checks to see if the changes made are to the equipment
 		if (equipmentManager.getEquipment() != null && itemContainerChanged.getItemContainer() == equipmentManager.getEquipment() &&
-			!equipmentManager.getModifiedItemSlotChanges().isEmpty()) {
-			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+			!equipmentManager.getModifiedItemSlotChanges().isEmpty())
+		{
+			if (client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
+			{
 				equipmentManager.shouldTimerBeStarted(equipmentManager.getModifiedItemSlotChanges());
 			}
 		}
@@ -201,7 +221,8 @@ public class SkullTimerPlugin extends Plugin
 	{
 		if (overheadTextChanged.getActor().getName() != null &&
 			overheadTextChanged.getActor().getName().equalsIgnoreCase("Mage of Zamorak") &&
-		 	overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!")){
+		 	overheadTextChanged.getOverheadText().equalsIgnoreCase("Veniens! Sallakar! Rinnesset!"))
+		{
 			//sets one of the conditions to add the abyss timer.
 			locationManager.setHasBeenTeleportedIntoAbyss(true);
 		}
@@ -214,49 +235,87 @@ public class SkullTimerPlugin extends Plugin
 	public void onInteractingChanged(InteractingChanged interactingChanged)
 	{
 		//if the player is not in the wilderness then skip
-		if (!locationManager.isInWilderness()){
+		if (!locationManager.isInWilderness())
+		{
 			return;
 		}
 
 		Actor target = interactingChanged.getTarget();
 		Actor source = interactingChanged.getSource();
 
-		//if the player has been attacked/interacted with
-		if (target instanceof Player && source instanceof Player
-			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
-			combatManager.onAnimationOrInteractionChange((Player) source, gameTickCounter, false);
+		if (!(source instanceof Player))
+		{
+			return;
 		}
+
+		String sourceName = source.getName();
+
+		boolean isTargetLocalPlayer = target instanceof Player && target.getName() != null &&
+			target.getName().equalsIgnoreCase(client.getLocalPlayer().getName());
+
+		combatManager.onPlayerInteractionChange(sourceName, isTargetLocalPlayer);
 	}
 
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
 		//if the local player is not in the wilderness or if the player hit is the local player
-		if (!locationManager.isInWilderness() || hitsplatApplied.getActor().getName() != null &&
-			hitsplatApplied.getActor().getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+		if (!locationManager.isInWilderness() || hitsplatApplied.getActor() == null ||
+			hitsplatApplied.getActor().getName() == null || !(hitsplatApplied.getActor() instanceof Player))
+		{
 			return;
 		}
 
+		Player playerHit = (Player) hitsplatApplied.getActor();
+		Player localPlayer = client.getLocalPlayer();
+
+		if (playerHit.getName().equalsIgnoreCase(localPlayer.getName()))
+		{
+			hasHitSplatOccurred = true;
+		}
 		//if the player attacks a player in the wilderness, and they have a skull icon
-		if (hitsplatApplied.getHitsplat().isMine() && hitsplatApplied.getActor() instanceof Player
-			&& client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
-			combatManager.onTargetHitsplat((Player) hitsplatApplied.getActor(), client.getLocalPlayer(), gameTickCounter);
+		else if (hitsplatApplied.getHitsplat().isMine() && localPlayer.getSkullIcon() != SkullIcon.NONE)
+		{
+			combatManager.onTargetHitsplat(playerHit, localPlayer, gameTickCounter);
 		}
 	}
 
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1){
+		Actor actor = animationChanged.getActor();
+
+		if (!locationManager.isInWilderness() || !(actor instanceof Player) || actor.getName() == null ||
+			actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()) || actor.getAnimation() == ExcludedAnimations.IDLE.getId())
+		{
 			return;
 		}
 
-		Actor actor = animationChanged.getActor();
+		Player player = (Player) actor;
+		int animationID = player.getAnimation();
 
-		if (actor instanceof Player && actor.getName() != null &&
-			!actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()))
+		if (ExcludedAnimations.isExcluded(animationID))
 		{
-			combatManager.onAnimationOrInteractionChange((Player) actor, gameTickCounter, true);
+			log.debug("Animation is excluded. Ending animation processing.");
+			return;
+		}
+
+		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
+		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
+		WeaponHitDelay weaponHitDelay = equipmentManager.getWeaponHitDelay(weaponID, animationID);
+
+		if (weaponHitDelay == null)
+		{
+			log.warn("Weapon {} does not exist in weapons table.", weaponID);
+		} else
+		{
+			int hitDelay = weaponHitDelay.calculateHitDelay(distance);
+			AttackType attackType = weaponHitDelay.getAttackType();
+
+			if (combatManager.addExpectedHitTick(player.getName(), gameTickCounter + hitDelay, attackType))
+			{
+				log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}, attack type: {}). Attack has been recorded.", player.getName(), weaponID, distance, hitDelay, gameTickCounter, attackType);
+			}
 		}
 	}
 
@@ -265,22 +324,30 @@ public class SkullTimerPlugin extends Plugin
 	{
 		Player player = playerDespawned.getPlayer();
 
-		if (player == null || player.getName() == null || !combatManager.getCombatRecords().containsKey(player.getName())) {
+		if (player == null || player.getName() == null || !combatManager.getCombatRecords().containsKey(player.getName()))
+		{
 			return;
 		}
 
 		String playerName = player.getName();
 		CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
 
-		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
+		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD)
+		{
 			log.debug("Player {} despawned. Target has been set to dead status.", playerName);
-		} else if (combatInteraction.hasRetaliated()) {
+		}
+		else if (combatInteraction.hasRetaliated())
+		{
 			log.debug("Player {} was in combat. Target has been set to inactive.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.INACTIVE);
-		} else if (locationManager.hasPlayerLoggedOut(player)){
+		}
+		else if (locationManager.hasPlayerLoggedOut(player))
+		{
 			log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
-		}  else {
+		}
+		else
+		{
 			log.debug("Player {} combat status set to unknown.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.UNCERTAIN);
 		}
@@ -293,14 +360,18 @@ public class SkullTimerPlugin extends Plugin
 		{
 			String playerName = actorDeath.getActor().getName();
 			//if the local player is the one who is killed, then remove all attacker logs (as this is reset)
-			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName())){
+			if (playerName.equalsIgnoreCase(client.getLocalPlayer().getName()))
+			{
 				log.debug("Player {} has died, resetting combat records.", playerName);
 				combatManager.clearRecords();
 			//if the player has killed their target, update their status
-			} else if (combatManager.getCombatRecords().containsKey(playerName)) {
+			}
+			else if (combatManager.getCombatRecords().containsKey(playerName))
+			{
 				log.debug("Player {} has died, updating combat status to dead.", playerName);
 				CombatInteraction combatInteraction = combatManager.getCombatRecords().get(playerName);
-				if (combatInteraction != null){
+				if (combatInteraction != null)
+				{
 					combatInteraction.setCombatStatus(CombatStatus.DEAD);
 				}
 			}
@@ -310,10 +381,10 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (timerManager.getTimer() != null) {
+		if (timerManager.getTimer() != null)
+		{
 			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), false);
 		}
-		combatManager.setPVPEnabled(config.pvpToggle());
 	}
 
 	@Provides

@@ -2,6 +2,7 @@ package com.skulltimer.mocks;
 
 import com.skulltimer.SkullTimerConfig;
 import com.skulltimer.SkullTimerPlugin;
+import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import net.runelite.api.Client;
 import net.runelite.client.game.ItemManager;
@@ -22,4 +23,6 @@ public class TimerMocks
 	protected SkullTimerPlugin skullTimerPlugin;
 	@Mock
 	protected TimerManager timerManager;
+	@Mock
+	protected StatusManager statusManager;
 }

@@ -1,5 +1,6 @@
 package com.skulltimer.managers;
 
+import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.Item;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +39,8 @@ public class EquipmentManagerTests extends TimerMocks
 	Item amuletMockTwo;
 	@Mock
 	Item capeMockTwo;
+	@Mock
+	ItemComposition itemComposition;
 
 	List<Integer> changedItemIDSlots;
 
@@ -42,13 +48,13 @@ public class EquipmentManagerTests extends TimerMocks
 	public void startUp()
 	{
 		changedItemIDSlots = new ArrayList<>();
-		when(equipmentManager.getEquipment()).thenReturn(equipment);
 	}
 
 	@Test
 	public void indefiniteSkullItemEquipped()
 	{
 		//equipping indefinite skulled item
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -64,6 +70,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void indefiniteSkullItemUnequipped()
 	{
 		//equipping indefinite skulled item and checking
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -81,6 +88,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void limitedSkullItemEquipped()
 	{
 		//equipping item
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(null);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(capeMock.getId()).thenReturn(SkulledItems.CAPE_OF_SKULLS.getItemID());
@@ -95,6 +103,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void limitedSkullItemUnequipped()
 	{
 		//equipping item
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(null);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(capeMock.getId()).thenReturn(SkulledItems.CAPE_OF_SKULLS.getItemID());
@@ -114,6 +123,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void itemAlreadyEquipped()
 	{
 		//start up and game state changed method
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		equipmentManager.updateCurrentEquipment();
 		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 	}
@@ -122,6 +132,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void EquippingPermanentItemAfterLimitedItem()
 	{
 		//equipping limited skulled effect item
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(null);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(capeMock.getId()).thenReturn(SkulledItems.CAPE_OF_SKULLS.getItemID());
@@ -144,6 +155,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void EquippingPermanentItemBeforeLimitedItem()
 	{
 		//equipping indefinite skulled item
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -166,6 +178,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void RemovingBothSkulledEquipment_PermanentFirst()
 	{
 		//both items have been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -192,6 +205,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void RemovingBothSkulledEquipment_NonePermanentFirst()
 	{
 		//both items have been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -218,6 +232,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void UnequippedBothSlotsOnSameTick()
 	{
 		//both items have been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -239,6 +254,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void EquippedBothSlotsOnSameTick()
 	{
 		//both items have been unequipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(null);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		equipmentManager.updateCurrentEquipment();
@@ -260,6 +276,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void RemovingPermanent_ThenAddingTemporary()
 	{
 		//amulet has been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		when(amuletMock.getId()).thenReturn(SkulledItems.AMULET_OF_AVARICE.getItemID());
@@ -286,6 +303,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void SwappingSkulledItemsForOtherItems()
 	{
 		//both items have been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 
@@ -327,6 +345,7 @@ public class EquipmentManagerTests extends TimerMocks
 	public void SwappingOtherItemsForSkulledItems()
 	{
 		//both items have been equipped
+		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMockTwo);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMockTwo);
 
@@ -361,5 +380,39 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+	}
+
+	@Test
+	public void getWeaponHitDelay_NotSpell()
+	{
+		assertEquals(WeaponHitDelay.MAGIC_STANDARD_WITH_MELEE, equipmentManager.getWeaponHitDelay(20733, 1));
+	}
+
+	@Test
+	public void getWeaponHitDelay_WithRangedWeapon()
+	{
+		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(11785, 7552));
+	}
+
+	@Test
+	public void getWeaponHitDelay_WithSpell()
+	{
+		assertEquals(WeaponHitDelay.MAGIC_STANDARD, equipmentManager.getWeaponHitDelay(11785, 727));
+	}
+
+	@Test
+	public void getWeaponHitDelay_WithUndefinedWeapon()
+	{
+		when(itemManager.getItemComposition(1)).thenReturn(itemComposition);
+		when(itemComposition.getName()).thenReturn("Armadyl Crossbow");
+		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(1, -1));
+	}
+
+	@Test
+	public void getWeaponHitDelay_WithUndefinedWeapon_DoesNotExistInGenericWeapons()
+	{
+		when(itemManager.getItemComposition(1)).thenReturn(itemComposition);
+		when(itemComposition.getName()).thenReturn("");
+		assertNull(equipmentManager.getWeaponHitDelay(1, -1));
 	}
 }

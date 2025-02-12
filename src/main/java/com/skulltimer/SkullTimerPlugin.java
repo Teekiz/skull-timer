@@ -28,6 +28,7 @@ import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.equipment.AttackType;
+import com.skulltimer.enums.equipment.ExcludedAnimations;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.managers.CombatManager;
 import com.skulltimer.managers.EquipmentManager;
@@ -269,11 +270,10 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
-		//todo - get excluded animations
 		Actor actor = animationChanged.getActor();
 
-		if (!locationManager.isInWilderness() || animationChanged.getActor() == null || animationChanged.getActor().getAnimation() == -1 ||
-			!(actor instanceof Player) || actor.getName() == null || actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
+		if (!locationManager.isInWilderness() || (actor instanceof Player) || actor.getName() == null ||
+			actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()) || ExcludedAnimations.isExcluded(actor.getAnimation())){
 			return;
 		}
 

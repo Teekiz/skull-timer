@@ -272,13 +272,18 @@ public class SkullTimerPlugin extends Plugin
 	{
 		Actor actor = animationChanged.getActor();
 
-		if (!locationManager.isInWilderness() || (actor instanceof Player) || actor.getName() == null ||
-			actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName()) || ExcludedAnimations.isExcluded(actor.getAnimation())){
+		if (!locationManager.isInWilderness() || !(actor instanceof Player) || actor.getName() == null ||
+			actor.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
 			return;
 		}
 
 		Player player = (Player) actor;
 		int animationID = player.getAnimation();
+
+		if (ExcludedAnimations.isExcluded(animationID)){
+			log.debug("Animation is excluded. Ending animation processing.");
+			return;
+		}
 
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
 		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);

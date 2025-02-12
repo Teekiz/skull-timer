@@ -2,12 +2,10 @@ package com.skulltimer.managers;
 
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.data.ExpectedHit;
-import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
-import java.util.HashMap;
 import net.runelite.api.GraphicID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
@@ -21,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,9 +32,6 @@ public class CombatManagerTests extends TimerMocks
 	@Mock
 	Player localPlayer;
 
-	HashMap<String, PlayerInteraction> expectedInteractions;
-
-	PlayerInteraction playerInteraction;
 	CombatInteraction combatInteraction;
 
 	@Spy
@@ -51,7 +45,6 @@ public class CombatManagerTests extends TimerMocks
 	public void startUp()
 	{
 		when(player.getName()).thenReturn("PlayerOne");
-		expectedInteractions = new HashMap<>();
 	}
 
 	@Test
@@ -89,8 +82,7 @@ public class CombatManagerTests extends TimerMocks
 		//initial attack
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		//simulated response
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		combatManager.onConfirmedInCombat(player.getName());
 		//final attack
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
@@ -101,8 +93,7 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void testUnprovokedAttackOnLocalPlayer()
 	{
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		combatManager.onConfirmedInCombat(player.getName());
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player attacked back, don't restart timer
@@ -117,8 +108,7 @@ public class CombatManagerTests extends TimerMocks
 		combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
 		combatManager.getCombatRecords().put("PlayerOne", combatInteraction);
 
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
+		combatManager.onConfirmedInCombat(player.getName());
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player had logged out, their attacking record would have been reset, causing them to become the aggressor.
@@ -150,32 +140,6 @@ public class CombatManagerTests extends TimerMocks
 	}
 
 	@Test
-	public void testUnprovokedAttackOnOtherPlayer_WithPlayerInteractionAndNoAnimation()
-	{
-		when(config.pvpToggle()).thenReturn(true);
-
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-
-		//because the player didn't attack back, restart timer
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
-		assertEquals(0, combatManager.getCombatRecords().values().stream().filter(entry -> entry.getCombatStatus() == CombatStatus.ATTACKER).count());
-	}
-
-	@Test
-	public void testUnprovokedAttackOnOtherPlayer_WithPlayerAnimationAndNoInteraction()
-	{
-		when(config.pvpToggle()).thenReturn(true);
-
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-
-		//because the player didn't attack back, restart timer
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
-		assertEquals(0, combatManager.getCombatRecords().values().stream().filter(entry -> entry.getCombatStatus() == CombatStatus.ATTACKER).count());
-	}
-
-	@Test
 	public void testUnprovokedAttackOnOtherPlayer_PlayerHadLoggedOut_WithNoRetaliation()
 	{
 		when(config.pvpToggle()).thenReturn(true);
@@ -199,24 +163,6 @@ public class CombatManagerTests extends TimerMocks
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
-	}
-
-	@Test
-	public void PlayerWithInteractionAndAnimationOnDifferentTicks()
-	{
-		when(config.pvpToggle()).thenReturn(true);
-
-		combatManager.onAnimationOrInteractionChange(player, tickCounter++, false);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter++, true);
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-
-		combatManager.onAnimationOrInteractionChange(player, tickCounter++, true);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter++, false);
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-
-		//because the player attacked back, don't restart timer
-		verify(timerManager, times(2)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
-		assertEquals(0, combatManager.getCombatRecords().values().stream().filter(entry -> entry.getCombatStatus() == CombatStatus.ATTACKER).count());
 	}
 
 	@Test
@@ -258,21 +204,6 @@ public class CombatManagerTests extends TimerMocks
 	}
 
 	@Test
-	public void unprovokedAttack_ThenRetaliated_WithDefenceAnimation()
-	{
-		//initial attack
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter++, true);
-		//simulated response
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, false);
-		combatManager.onAnimationOrInteractionChange(player, tickCounter, true);
-		//final attack
-		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-
-		assertEquals(CombatStatus.RETALIATED, combatManager.getCombatRecords().get("PlayerOne").getCombatStatus());
-	}
-
-	@Test
 	public void addExpectedHitTick_WithNullRecord()
 	{
 		combatManager.addExpectedHitTick(player.getName(), 2, AttackType.OTHER);
@@ -281,16 +212,19 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void addExpectedHitTick_WithExistingRecord()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick("New Player", 2, AttackType.MAGIC);
+
 		ExpectedHit expectedHit = new ExpectedHit(player.getName(), AttackType.MELEE);
-		combatManager.getInteractionRecords().put(player.getName(), playerInteraction);
 		combatManager.addExpectedHitTick(player.getName(), 2, AttackType.MELEE);
+
 		assertTrue(combatManager.getAttackRecords().get(2).contains(expectedHit));
 	}
 
 	@Test
 	public void onTickOfExpectedHit_TickNumberLowerThanCurrentTick()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 2, AttackType.MELEE);
 		combatManager.onTickOfExpectedHit(3, true);
 		assertEquals(1, combatManager.getCombatRecords().size());
@@ -299,6 +233,7 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void onTickOfExpectedHit_TickNumberEqualToCurrentTick()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MELEE);
 		combatManager.onTickOfExpectedHit(3, true);
 
@@ -309,6 +244,7 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void onTickOfExpectedHit_TickNumberGreaterThanCurrentTick()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 4, AttackType.MELEE);
 		assertEquals(1, combatManager.getAttackRecords().get(4).size());
 		verify(combatManager, times(0)).onConfirmedInCombat(player.getName());
@@ -317,6 +253,7 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void onTickOfExpectedHitSplat_NoHit()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MELEE);
 		combatManager.onTickOfExpectedHit(3, false);
 
@@ -327,11 +264,11 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void onTickOfExpectedHitSplat_NoHit_WithMagicAttack_NoSplash()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MAGIC);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(false);
 
-		expectedInteractions.put(player.getName(), playerInteraction);
 		combatManager.onTickOfExpectedHit(3, false);
 
 		assertEquals(1, combatManager.getAttackRecords().get(3).size());
@@ -341,11 +278,11 @@ public class CombatManagerTests extends TimerMocks
 	@Test
 	public void onTickOfExpectedHitSplat_NoHit_WithMagicAttack_WithSplash()
 	{
+		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MAGIC);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(true);
 
-		expectedInteractions.put(player.getName(), playerInteraction);
 		combatManager.onTickOfExpectedHit(3, false);
 
 		assertEquals(1, combatManager.getAttackRecords().get(3).size());

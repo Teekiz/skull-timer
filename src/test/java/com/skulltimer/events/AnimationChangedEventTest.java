@@ -1,6 +1,5 @@
 package com.skulltimer.events;
 
-import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.mocks.PluginMocks;
@@ -15,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -41,7 +39,7 @@ public class AnimationChangedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(false);
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAnimationOrInteractionChange(any(Player.class), anyInt(), anyBoolean());
+		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
 	}
 
 	@Test
@@ -52,7 +50,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(player.getAnimation()).thenReturn(-1);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAnimationOrInteractionChange(any(Player.class), anyInt(), anyBoolean());
+		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
 	}
 
 	@Test
@@ -62,7 +60,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(animationChanged.getActor()).thenReturn(null);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAnimationOrInteractionChange(any(Player.class), anyInt(), anyBoolean());
+		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
 	}
 
 	@Test
@@ -73,7 +71,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(npc.getAnimation()).thenReturn(100);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAnimationOrInteractionChange(any(Player.class), anyInt(), anyBoolean());
+		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
 	}
 
 	@Test
@@ -86,7 +84,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(0)).onAnimationOrInteractionChange(any(Player.class), anyInt(), anyBoolean());
+		verify(locationManager, times(0)).calculateDistanceBetweenPlayers(any(Player.class), any(Player.class));
 	}
 
 	@Test
@@ -96,7 +94,6 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(animationChanged.getActor()).thenReturn(player);
 		when(player.getName()).thenReturn("Player");
 		when(player.getAnimation()).thenReturn(100);
-		when(config.sensitivity()).thenReturn(Sensitivity.HIGH);
 
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
@@ -105,7 +102,7 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
 
 		eventBus.post(animationChanged);
-		verify(combatManager, times(1)).onAnimationOrInteractionChange(player, 0, true);
+		verify(equipmentManager, times(1)).getWeaponHitDelay(1289, 100);
 	}
 
 	@Test

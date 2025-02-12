@@ -25,10 +25,8 @@ package com.skulltimer;
 
 import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
-import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
-import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.managers.CombatManager;
@@ -37,7 +35,6 @@ import com.skulltimer.managers.LocationManager;
 import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import java.time.Instant;
-import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -100,7 +97,7 @@ public class SkullTimerPlugin extends Plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
-		equipmentManager = new EquipmentManager(client, config, timerManager, itemManager);
+		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
 		combatManager = new CombatManager(client, config, timerManager);
 
 		gameTickCounter = 0;
@@ -236,11 +233,16 @@ public class SkullTimerPlugin extends Plugin
 		Actor target = interactingChanged.getTarget();
 		Actor source = interactingChanged.getSource();
 
-		//if the player has been attacked/interacted with
-		if (target instanceof Player && source instanceof Player
-			&& target.getName() != null && target.getName().equalsIgnoreCase(client.getLocalPlayer().getName())){
-			combatManager.onAnimationOrInteractionChange((Player) source, gameTickCounter, false);
+		if (!(source instanceof Player)){
+			return;
 		}
+
+		String sourceName = source.getName();
+
+		boolean isTargetLocalPlayer = target instanceof Player && target.getName() != null &&
+			target.getName().equalsIgnoreCase(client.getLocalPlayer().getName());
+
+		combatManager.onPlayerInteractionChange(sourceName, isTargetLocalPlayer);
 	}
 
 	@Subscribe
@@ -277,11 +279,6 @@ public class SkullTimerPlugin extends Plugin
 
 		Player player = (Player) actor;
 		int animationID = player.getAnimation();
-
-		//if the sensitivity setting is set to high, process this attack using the animation.
-		if (config.sensitivity() == Sensitivity.HIGH){
-			combatManager.onAnimationOrInteractionChange(player, gameTickCounter, true);
-		}
 
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
 		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);

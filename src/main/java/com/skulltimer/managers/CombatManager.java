@@ -27,7 +27,6 @@ package com.skulltimer.managers;
 import com.skulltimer.SkullTimerConfig;
 import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.data.ExpectedHit;
-import com.skulltimer.data.PlayerInteraction;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
@@ -60,7 +59,7 @@ public class CombatManager
 	@Getter
 	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
-	private final HashMap<String, PlayerInteraction> interactionRecords;
+	private final HashSet<String> interactionRecords;
 	@Getter
 	private final HashMap<Integer, Set<ExpectedHit>> attackRecords;
 	/**
@@ -75,91 +74,22 @@ public class CombatManager
 		this.config = config;
 		this.timerManager = timerManager;
 		this.combatRecords = new HashMap<>();
-		this.interactionRecords = new HashMap<>();
+		this.interactionRecords = new HashSet<>();
 		this.attackRecords = new HashMap<>();
 	}
 
 	/**
-	 * A method used to assign a {@code player} to the relevant record.
-	 *
-	 * <p>
-	 * There are 3 records that a player could be assigned/upgraded to:
-	 * <ol>
-	 *     <li>If either an animation or interaction occurs on the same tick, a new {@link PlayerInteraction} record will be created and stored.</li>
-	 *     <li>If an {@link PlayerInteraction} has already been created on the same {@code currentTick} value, the player can either be placed in either of the following records:</li>
-	 *     <ol>
-	 *         <li>If the player is a target but they have not retaliated, then their {@code TargetRecord} will be updated to reflect their {@code RETALIATED} status.</li>
-	 *         <li>Otherwise if the player has either been a target but has logged out or they have a skull icon, then their record will be upgraded to attacker.</li>
-	 *     </ol>
-	 * </ol>
-	 * </p>
-	 *
-	 * @param player The {@link Player} who has either interacted with animation has changed.
-	 * @param currentTick The {@link Integer} value representing the current tick number.
-	 * @param isAnimation {@code true} if the change was an animation. Otherwise {@code false}.
+	 * A method to make a record of any player who interacts with the local player.
+	 * @param playerName The name of the player to add to the record.
+	 * @param addPlayer A boolean to check if the player should be added or removed from the record.
 	 */
-	public void onAnimationOrInteractionChange(Player player, int currentTick, boolean isAnimation){
-		if (player == null || player.getName() == null || player.getName().isEmpty()){
-			return;
-		}
-
-		//if the interaction has already occurred, just update the interaction record
-		String playerName = player.getName();
-		PlayerInteraction interaction = interactionRecords.get(playerName);
-
-		if (interaction == null){
-			log.debug("New interaction record created for player {}.", playerName);
-			interaction = new PlayerInteraction();
-			interactionRecords.put(playerName, interaction);
-		}
-
-		updateInteractionRecord(interaction, currentTick, isAnimation, playerName);
-
-		if (interaction.hasInteractionAndAnimationOccurredOnTheSameTick()){
-			onConfirmedInCombat(playerName);
-		}
-	}
-
-	/**
-	 * A method used to update the interaction record for {@code playerName}.
-	 * @param playerInteraction The record to be updated.
-	 * @param currentTick The tick number that the update is occurring on.
-	 * @param isAnimation Whether the animation or interaction tick will be updated.
-	 * @param playerName The name of the player associated with this record.
-	 */
-	private void updateInteractionRecord(PlayerInteraction playerInteraction, int currentTick, boolean isAnimation, String playerName)
+	public void onPlayerInteractionChange(String playerName, boolean addPlayer)
 	{
-		if (playerInteraction == null){
-			return;
+		if (addPlayer && interactionRecords.add(playerName)){
+			log.debug("Adding {} to interaction records.", playerName);
+		} else if (!addPlayer && interactionRecords.remove(playerName)){
+			log.debug("Removing {} from interaction records.", playerName);
 		}
-
-		log.debug("Updating {} record for: {}.", isAnimation ? "animation" : "interaction", playerName);
-
-		if (isAnimation){
-			playerInteraction.setAnimationTick(currentTick);
-		} else {
-			playerInteraction.setInteractionTick(currentTick);
-		}
-	}
-
-	/**
-	 * A method to determine if the player meets the requirements to be considered an attacker.
-	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
-	 * @return {@code true} if the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}. Otherwise, returns {@code false}.
-	 */
-	private boolean shouldSetStatusToAttacker(CombatInteraction combatInteraction){
-		//if the player had previously logged out, then
-		return combatInteraction != null && combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT;
-	}
-
-	/**
-	 * A method to determine if the player meets the requirements to be set to the retaliated status.
-	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
-	 * @return {@code true} if the {@code combatInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
-	 */
-	private boolean shouldSetStatusToRetaliated(CombatInteraction combatInteraction){
-		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
-		return combatInteraction != null && !combatInteraction.hasRetaliated();
 	}
 
 	/**
@@ -186,7 +116,26 @@ public class CombatManager
 			log.debug("Player {} exists in interaction records. Upgrading to attacker.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKER);
 		}
-		//interactionRecords.remove(playerName);
+	}
+
+	/**
+	 * A method to determine if the player meets the requirements to be considered an attacker.
+	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
+	 * @return {@code true} if the player exists in {@code targetRecords} and their {@link CombatStatus} is {@code LOGGED_OUT}. Otherwise, returns {@code false}.
+	 */
+	private boolean shouldSetStatusToAttacker(CombatInteraction combatInteraction){
+		//if the player had previously logged out, then
+		return combatInteraction != null && combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT;
+	}
+
+	/**
+	 * A method to determine if the player meets the requirements to be set to the retaliated status.
+	 * @param combatInteraction The {@link CombatInteraction} record if it exists.
+	 * @return {@code true} if the {@code combatInteraction} is not {@code null} and their {@link CombatStatus} has not been set to {@code RETALIATED}.
+	 */
+	private boolean shouldSetStatusToRetaliated(CombatInteraction combatInteraction){
+		//if the player the local player is targeting has a target interaction, and they have yet to be upgraded
+		return combatInteraction != null && !combatInteraction.hasRetaliated();
 	}
 
 	/**
@@ -296,8 +245,10 @@ public class CombatManager
 	 * @param attackType The type of attack style the hit applied.
 	 */
 	public void addExpectedHitTick(String playerName, int expectedHitTick, AttackType attackType){
-		ExpectedHit expectedHit = new ExpectedHit(playerName, attackType);
-		attackRecords.computeIfAbsent(expectedHitTick, r -> new HashSet<>()).add(expectedHit);
+		if (interactionRecords.contains(playerName)){
+			ExpectedHit expectedHit = new ExpectedHit(playerName, attackType);
+			attackRecords.computeIfAbsent(expectedHitTick, r -> new HashSet<>()).add(expectedHit);
+		}
 	}
 
 	/**

@@ -1,6 +1,5 @@
 package com.skulltimer.managers;
 
-import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.SkulledItems;
@@ -386,15 +385,13 @@ public class EquipmentManagerTests extends TimerMocks
 	@Test
 	public void getWeaponHitDelay_NotSpell()
 	{
-		when(config.sensitivity()).thenReturn(Sensitivity.MEDIUM);
 		assertEquals(WeaponHitDelay.MAGIC_STANDARD_WITH_MELEE, equipmentManager.getWeaponHitDelay(20733, 1));
 	}
 
 	@Test
 	public void getWeaponHitDelay_WithRangedWeapon()
 	{
-		when(config.sensitivity()).thenReturn(Sensitivity.MEDIUM);
-		assertEquals(WeaponHitDelay.RANGED_ACB_ZZB_SPECIAL, equipmentManager.getWeaponHitDelay(11785, 7552));
+		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(11785, 7552));
 	}
 
 	@Test

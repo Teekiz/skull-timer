@@ -29,7 +29,6 @@ import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
-import com.skulltimer.enums.config.Sensitivity;
 import com.skulltimer.enums.equipment.GenericWeapons;
 import com.skulltimer.enums.equipment.SpellAnimations;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
@@ -58,8 +57,6 @@ public class EquipmentManager
 	@Inject
 	private final Client client;
 	@Inject
-	private final SkullTimerConfig config;
-	@Inject
 	private final ItemManager itemManager;
 	private final TimerManager timerManager;
 	/** A {@link HashMap} value that is changed when a player equips an item which provides a skull (e.g. amulet of avarice). */
@@ -68,13 +65,11 @@ public class EquipmentManager
 	/**
 	 * The constructor for a {@link EquipmentManager} object.
 	 * @param client Runelite's {@link Client} object.
-	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 * @param itemManager Runelite's {@link ItemManager} object.
 	 */
-	public EquipmentManager(Client client, SkullTimerConfig config, TimerManager timerManager, ItemManager itemManager) {
+	public EquipmentManager(Client client, TimerManager timerManager, ItemManager itemManager) {
 		this.client = client;
-		this.config = config;
 		this.timerManager = timerManager;
 		this.itemManager = itemManager;
 		this.equippedItems = new HashMap<>();
@@ -287,14 +282,8 @@ public class EquipmentManager
 			return GenericWeapons.getWeaponTypeHitDelay(weaponName);
 		}
 
-		//if the sensitivity is low and the weapon id does not match, do not proceed.
-		if (config.sensitivity() == Sensitivity.LOW && !weapon.getWeaponAnimations().doesIDMatchAnimation(animationID)) {
-			log.debug("Animation does not match any known weapon IDs. Discarding animation.");
-			return null;
-		}
-
 		return (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE
-			&& weapon.getWeaponAnimations().doesSpecialIDMatchAnimation(animationID))
+			&& weapon.doesAnimationMatchSpecialAnimation(animationID))
 			? weapon.getSpecialHitDelay()
 			: weapon.getStandardHitDelay();
 	}

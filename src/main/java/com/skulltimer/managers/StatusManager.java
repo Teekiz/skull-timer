@@ -74,17 +74,21 @@ public class StatusManager
 	public void checkSkulledStatus()
 	{
 		//check if there has been a change in status.
-		if (doesPlayerHaveSkullIcon == doesPlayerCurrentlyHaveSkullIcon()){
+		if (doesPlayerHaveSkullIcon == doesPlayerCurrentlyHaveSkullIcon())
+		{
 			return;
 		}
 
 		Instant now = Instant.now();
 
-		if (doesPlayerCurrentlyHaveSkullIcon()){
+		if (doesPlayerCurrentlyHaveSkullIcon())
+		{
 			skullIconStartTime = now;
 			log.debug("Skull icon has started: Start time: {}.", dateTimeFormatter.format(skullIconStartTime));
 			doesPlayerHaveSkullIcon = true;
-		} else if (skullIconStartTime != null){
+		}
+		else if (skullIconStartTime != null)
+		{
 			Duration skulledDuration = Duration.between(skullIconStartTime, now);
 			long skulledDurationMinutes = skulledDuration.toMinutes();
 			long skulledDurationSeconds = skulledDuration.toSeconds() % 60;
@@ -95,7 +99,8 @@ public class StatusManager
 				skulledDurationMinutes,
 				skulledDurationSeconds);
 
-			if (timerEndTime != null){
+			if (timerEndTime != null)
+			{
 				Duration timerExpiredDuration = Duration.between(timerEndTime, now);
 				long timerExpiredMinutes = timerExpiredDuration.toMinutes();
 				long timerExpiredSeconds = timerExpiredDuration.toSeconds() % 60;

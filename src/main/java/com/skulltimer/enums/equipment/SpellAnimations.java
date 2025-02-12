@@ -4,6 +4,9 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * A list of spells and their associated animation ID.
+ */
 @Slf4j
 @Getter
 public enum SpellAnimations
@@ -31,6 +34,7 @@ public enum SpellAnimations
 	STANDARD_WITH_STAFF(WeaponHitDelay.MAGIC_STANDARD, Set.of(1162, 7855, 1167, 1163, 1164, 1165, 1161, 1168, 1169, 1166, 708, 811, 1576, 1820)),
 	ANCIENT(WeaponHitDelay.MAGIC_STANDARD, Set.of(1978, 1979)),
 	GRASP_AND_DEMONBANE(WeaponHitDelay.MAGIC_GRASP_DEMONBANE_NIGHTMARE_STAFF_SPECIALS, Set.of(8972, 8977));
+
 	private final WeaponHitDelay weaponHitDelay;
 	private final Set<Integer> animationIDs;
 
@@ -40,9 +44,12 @@ public enum SpellAnimations
 		this.animationIDs = animationIDs;
 	}
 
-	public static WeaponHitDelay getSpellHitDelay(int animationID){
-		for (SpellAnimations animation : SpellAnimations.values()){
-			if (animation.getAnimationIDs().contains(animationID)){
+	public static WeaponHitDelay getSpellHitDelay(int animationID)
+	{
+		for (SpellAnimations animation : SpellAnimations.values())
+		{
+			if (animation.getAnimationIDs().contains(animationID))
+			{
 				log.debug("Spell animation found. Hit Delay: {}.", animation.getWeaponHitDelay());
 				return animation.getWeaponHitDelay();
 			}

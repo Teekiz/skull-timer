@@ -30,7 +30,7 @@ import lombok.Getter;
 import net.runelite.api.ItemID;
 
 /**
- * A list of weapons that can be used by players. This list contains the ItemID, The animations the weapon uses and the hit delays for both the basic attack and special attack.
+ * A list of weapons that can be used by players. This list contains the ItemID, the animations the weapon uses special attacks (if required) and the hit delays for the special attack.
  * All of this information and ordering comes from the <a href="https://oldschool.runescape.wiki">Old School RuneScape Wiki</a>, specifically from this <a href="https://oldschool.runescape.wiki/w/Weapons/Types">page</a>.
  */
 @Getter
@@ -1152,8 +1152,10 @@ public enum Weapons
 	//enables the weapons to be looked up at O(1) speed.
 	private static final Map<Integer, Weapons> lookup = new HashMap<>();
 
-	static {
-		for (Weapons weapon : Weapons.values()) {
+	static
+	{
+		for (Weapons weapon : Weapons.values())
+		{
 			lookup.put(weapon.weaponID, weapon);
 		}
 	}

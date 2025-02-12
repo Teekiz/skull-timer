@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * A list of weapon categories to be used in place of concrete weapon implementations in the event a weapon type cannot be found.
  */
-
 @Slf4j
 @Getter
 public enum GenericWeapons
@@ -24,9 +23,12 @@ public enum GenericWeapons
 	//a lookup map to increase lookup speed
 	private static final Map<String, WeaponHitDelay> weaponLookupMap = new HashMap<>();
 
-	static {
-		for (GenericWeapons weapon : GenericWeapons.values()) {
-			for (String tag : weapon.weaponNameTags) {
+	static
+	{
+		for (GenericWeapons weapon : GenericWeapons.values())
+		{
+			for (String tag : weapon.weaponNameTags)
+			{
 				weaponLookupMap.put(tag, weapon.weaponHitDelay);
 			}
 		}
@@ -38,16 +40,24 @@ public enum GenericWeapons
 		this.weaponNameTags = weaponNameTags;
 	}
 
+	/**
+	 * A method to get the hit delay for the given weapon name.
+	 * @param weaponName The name of the weapon whose hit delay is to be searched for.
+	 * @return The corresponding {@link WeaponHitDelay} for the given {@code weaponName}.
+	 */
 	public static WeaponHitDelay getWeaponTypeHitDelay(String weaponName)
 	{
-		if (weaponName.isEmpty()){
+		if (weaponName.isEmpty())
+		{
 			return null;
 		}
 
 		String weaponNameLowerCase = weaponName.toLowerCase();
 
-		for (String key : weaponLookupMap.keySet()) {
-			if (weaponNameLowerCase.contains(key)) {
+		for (String key : weaponLookupMap.keySet())
+		{
+			if (weaponNameLowerCase.contains(key))
+			{
 				log.debug("Generic weapon type found. Hit Delay: {}.", weaponLookupMap.get(key));
 				return weaponLookupMap.get(key);
 			}

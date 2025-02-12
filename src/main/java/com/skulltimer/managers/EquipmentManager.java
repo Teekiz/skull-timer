@@ -68,7 +68,8 @@ public class EquipmentManager
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 * @param itemManager Runelite's {@link ItemManager} object.
 	 */
-	public EquipmentManager(Client client, TimerManager timerManager, ItemManager itemManager) {
+	public EquipmentManager(Client client, TimerManager timerManager, ItemManager itemManager)
+	{
 		this.client = client;
 		this.timerManager = timerManager;
 		this.itemManager = itemManager;

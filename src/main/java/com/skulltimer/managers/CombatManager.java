@@ -79,7 +79,7 @@ public class CombatManager
 	}
 
 	/**
-	 * A method to make a record of any player who interacts with the local player.
+	 * A method to add/remove a record of any player who interacts with the local player.
 	 * @param playerName The name of the player to add to the record.
 	 * @param addPlayer A boolean to check if the player should be added or removed from the record.
 	 */
@@ -162,7 +162,6 @@ public class CombatManager
 		if (!combatRecords.containsKey(player.getName())) {
 			log.debug("Target record created for player {}.", player.getName());
 			CombatInteraction combatInteraction = new CombatInteraction();
-			combatInteraction.setTickNumberOfLastAttack(currentTick);
 			combatRecords.put(player.getName(), combatInteraction);
 			addTimerCheck(false);
 			return;
@@ -243,12 +242,17 @@ public class CombatManager
 	 * @param playerName The name of the player who started the animation.
 	 * @param expectedHitTick The tick number of when the attack can be expected to land.
 	 * @param attackType The type of attack style the hit applied.
+	 * @return {@code true} if the record was added successfully. Returns {@code false} if the interaction record does not contain the {@code playerName}.
 	 */
-	public void addExpectedHitTick(String playerName, int expectedHitTick, AttackType attackType){
-		if (interactionRecords.contains(playerName)){
+	public boolean addExpectedHitTick(String playerName, int expectedHitTick, AttackType attackType)
+	{
+		if (interactionRecords.contains(playerName))
+		{
 			ExpectedHit expectedHit = new ExpectedHit(playerName, attackType);
 			attackRecords.computeIfAbsent(expectedHitTick, r -> new HashSet<>()).add(expectedHit);
+			return true;
 		}
+		return false;
 	}
 
 	/**

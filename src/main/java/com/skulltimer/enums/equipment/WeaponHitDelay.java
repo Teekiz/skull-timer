@@ -32,93 +32,121 @@ import lombok.Getter;
 @Getter
 public enum WeaponHitDelay
 {
-	MELEE_STANDARD(AttackType.MELEE) {
+	MELEE_STANDARD(AttackType.MELEE)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 0;
 		}
 	},
-	MELEE_DELAYED_SPECIAL(AttackType.MELEE) {
+	MELEE_DELAYED_SPECIAL(AttackType.MELEE)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 1;
 		}
 	},
-	RANGED_STANDARD(AttackType.RANGED) {
+	RANGED_STANDARD(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 1 + (3 + distance / 6);
 		}
 	},
-	RANGED_ACB_ZZB_SPECIAL(AttackType.RANGED) {
+	RANGED_ACB_ZZB_SPECIAL(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 2;
 		}
 	},
-	RANGED_WEBWEAVER_SPECIAL(AttackType.RANGED) {
+	RANGED_WEBWEAVER_SPECIAL(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 1;
 		}
 	},
-	RANGED_THROWN(AttackType.RANGED) {
+	RANGED_THROWN(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 1 + (distance / 6);
 		}
 	},
-	RANGED_BLOWPIPE_SPECIAL(AttackType.RANGED) {
+	RANGED_BLOWPIPE_SPECIAL(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			if (distance == 4 || distance == 5) return 2;
 			else return 1 + (distance / 6);
 		}
 	},
-	RANGED_BALLISTAE(AttackType.RANGED) {
+	RANGED_BALLISTAE(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			if (distance <= 4) return 2;
 			else return 3;
 		}
 	},
-	RANGED_TONALZTICS_OF_RALOS(AttackType.RANGED) {
+	RANGED_TONALZTICS_OF_RALOS(AttackType.RANGED)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 2;
 		}
 	},
-	MAGIC_STANDARD(AttackType.MAGIC) {
+	MAGIC_STANDARD(AttackType.MAGIC)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 1 + (1 + distance / 3);
 		}
 	},
-	MAGIC_STANDARD_WITH_MELEE(AttackType.MELEE) {
+	MAGIC_STANDARD_WITH_MELEE(AttackType.MELEE)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 0;
 		}
 	},
-	MAGIC_GRASP_DEMONBANE_NIGHTMARE_STAFF_SPECIALS(AttackType.MAGIC) {
+	MAGIC_GRASP_DEMONBANE_NIGHTMARE_STAFF_SPECIALS(AttackType.MAGIC)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 2;
 		}
 	},
-	MAGIC_TUMEKENS_SHADOW(AttackType.MAGIC) {
+	MAGIC_TUMEKENS_SHADOW(AttackType.MAGIC)
+	{
 		@Override
 		public int calculateHitDelay(int distance){
 			return 2 + (1 + distance / 3);
 		}
 	},
-	OTHER_SHIELD_SPECIALS(AttackType.MELEE) {
+	OTHER_SHIELD_SPECIALS(AttackType.MELEE)
+	{
 		@Override
-		public int calculateHitDelay(int distance){
+		public int calculateHitDelay(int distance)
+		{
 			return 2 + (4 + distance / 6);
 		}
 	},
-	NOT_APPLICABLE(AttackType.OTHER) {
+	NOT_APPLICABLE(AttackType.OTHER)
+	{
 		@Override
 		public int calculateHitDelay(int distance)
 		{
@@ -129,7 +157,8 @@ public enum WeaponHitDelay
 	private final AttackType attackType;
 	public abstract int calculateHitDelay(int distance);
 
-	WeaponHitDelay(AttackType attackType){
+	WeaponHitDelay(AttackType attackType)
+	{
 		this.attackType = attackType;
 	}
 }

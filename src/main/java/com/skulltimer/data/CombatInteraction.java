@@ -33,8 +33,6 @@ import lombok.Data;
 @Data
 public class CombatInteraction
 {
-	private static final int defaultTickValue = -1;
-	private int tickNumberOfLastAttack = defaultTickValue;
 	private CombatStatus combatStatus = CombatStatus.ATTACKED;
 
 	/**

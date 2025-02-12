@@ -40,19 +40,28 @@ public enum ExcludedAnimations
 
 	private static final Map<Integer, ExcludedAnimations> EXCLUDED_MAP = new HashMap<>();
 
-	static {
-		for (ExcludedAnimations anim : values()) {
+	static
+	{
+		for (ExcludedAnimations anim : values())
+		{
 			EXCLUDED_MAP.put(anim.id, anim);
 		}
 	}
 
 	private final int id;
 
-	ExcludedAnimations(int id) {
+	ExcludedAnimations(int id)
+	{
 		this.id = id;
 	}
 
-	public static boolean isExcluded(int animationID) {
+	/**
+	 * A method used to check if a given animation ID matches any excluded animation IDs.
+	 * @param animationID The animation ID to check.
+	 * @return {@code true} if the animation is to be excluded. Otherwise, returns {@code false}.
+	 */
+	public static boolean isExcluded(int animationID)
+	{
 		return EXCLUDED_MAP.containsKey(animationID);
 	}
 }

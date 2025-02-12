@@ -66,12 +66,15 @@ public class LocationManager
 	public boolean isInAbyss()
 	{
 		if (isInArea(WorldAreas.ABYSS.getX(), WorldAreas.ABYSS.getY(), getPlayersLocation()) && hasBeenTeleportedIntoAbyss &&
-			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE){
+			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
+		{
 				hasBeenTeleportedIntoAbyss = false;
 				log.debug("Player has been teleported into the abyss. Starting timer.");
 				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
 				return true;
-		} else {
+		}
+		else
+		{
 			hasBeenTeleportedIntoAbyss = false;
 			return false;
 		}
@@ -83,7 +86,8 @@ public class LocationManager
 	 * @param playerTwo The player to calculate the distance from.
 	 * @return The distance between the two players. If either of the players are {@code null}, then a value of {@code 0} will be returned.
 	 */
-	public int calculateDistanceBetweenPlayers(Player playerOne, Player playerTwo){
+	public int calculateDistanceBetweenPlayers(Player playerOne, Player playerTwo)
+	{
 		if (playerOne == null || playerTwo == null) {return 0;}
 
 		WorldPoint worldPointA = playerOne.getWorldLocation();
@@ -106,7 +110,8 @@ public class LocationManager
 	{
 		WorldPoint localPlayerWorldPoint = getPlayersLocation();
 
-		if (localPlayerWorldPoint == null || player == null || player.getWorldLocation() == null){
+		if (localPlayerWorldPoint == null || player == null || player.getWorldLocation() == null)
+		{
 			return false;
 		}
 

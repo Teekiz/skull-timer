@@ -39,7 +39,8 @@ public enum TimerDurations
 
 	private final Duration duration;
 
-	TimerDurations(Duration duration){
+	TimerDurations(Duration duration)
+	{
 		this.duration = duration;
 	}
 }

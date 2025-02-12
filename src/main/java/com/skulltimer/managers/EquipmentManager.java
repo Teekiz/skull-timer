@@ -24,9 +24,15 @@
 
 package com.skulltimer.managers;
 
+import com.skulltimer.SkullTimerConfig;
+import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.GenericWeapons;
+import com.skulltimer.enums.equipment.SpellAnimations;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
+import com.skulltimer.enums.equipment.Weapons;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +45,7 @@ import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.client.game.ItemManager;
 
 /**
  * An object that is used to check a players worn equipment to identify if a skull timer is required.
@@ -49,6 +56,8 @@ public class EquipmentManager
 {
 	@Inject
 	private final Client client;
+	@Inject
+	private final ItemManager itemManager;
 	private final TimerManager timerManager;
 	/** A {@link HashMap} value that is changed when a player equips an item which provides a skull (e.g. amulet of avarice). */
 	private final HashMap<Integer, Item> equippedItems;
@@ -57,10 +66,13 @@ public class EquipmentManager
 	 * The constructor for a {@link EquipmentManager} object.
 	 * @param client Runelite's {@link Client} object.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
+	 * @param itemManager Runelite's {@link ItemManager} object.
 	 */
-	public EquipmentManager(Client client, TimerManager timerManager) {
+	public EquipmentManager(Client client, TimerManager timerManager, ItemManager itemManager)
+	{
 		this.client = client;
 		this.timerManager = timerManager;
+		this.itemManager = itemManager;
 		this.equippedItems = new HashMap<>();
 
 		//gets the previously worn items in contained item slots.
@@ -249,4 +261,31 @@ public class EquipmentManager
 		return true;
 	}
 
+	/**
+	 * A method used to determine the correct weapon hit delay based on the weapon ID and animation ID.
+	 * @param weaponID The ID of the weapon currently equipped by the player.
+	 * @param animationID The ID of the animation started by the player.
+	 * @return The corresponding {@link WeaponHitDelay}. If the weapon cannot be found, {@code null} is returned instead.
+	 */
+	public WeaponHitDelay getWeaponHitDelay(int weaponID, int animationID){
+		//checks to see if the animation matches a spell animation.
+		WeaponHitDelay spellHitDelay = SpellAnimations.getSpellHitDelay(animationID);
+
+		//if it does, return the hit delay for that spell.
+		if (spellHitDelay != null){
+			return spellHitDelay;
+		}
+
+		Weapons weapon = Weapons.getByItemID(weaponID);
+
+		if (weapon == null){
+			String weaponName = itemManager.getItemComposition(weaponID).getName();
+			return GenericWeapons.getWeaponTypeHitDelay(weaponName);
+		}
+
+		return (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE
+			&& weapon.doesAnimationMatchSpecialAnimation(animationID))
+			? weapon.getSpecialHitDelay()
+			: weapon.getStandardHitDelay();
+	}
 }

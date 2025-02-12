@@ -54,7 +54,7 @@ public class PlayerDespawnedEventTest extends PluginMocks
 		when(combatInteraction.getCombatStatus()).thenReturn(CombatStatus.DEAD);
 
 		eventBus.post(playerDespawned);
-		verifyNoMoreInteractions(combatManager);
+		verifyNoMoreInteractions(combatInteraction);
 	}
 
 	@Test

@@ -50,8 +50,14 @@ public class SkulledTimer extends Timer
 
 	public Color getTextColor()
 	{
-		if (getRemainingTime().getSeconds() <= 30) {return warningColour;}
-		else {return textColour;}
+		if (getRemainingTime().getSeconds() <= 30)
+		{
+			return warningColour;
+		}
+		else
+		{
+			return textColour;
+		}
 	}
 
 	public boolean isCautious()

@@ -93,6 +93,7 @@ public class SkullTimerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
@@ -102,48 +103,58 @@ public class SkullTimerPlugin extends Plugin
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
 
+		// Update the current equipment when the plugin starts
 		clientThread.invoke(() -> equipmentManager.updateCurrentEquipment());
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		//save the timer when shutting down if it exists
+		// Remove the timer, save duration remaining
 		timerManager.removeTimer(timerManager.getTimer() != null);
 	}
 
-	/*
-		This event if the player logs in/out or is teleported to another location (e.g. the Abyss).
- 	*/
+	/**
+	 * This event is triggered if the player logs in/out, hops worlds, or is teleported to another location (e.g., the Abyss).
+	 *
+	 * @param gameStateChanged The event that indicates the game state has changed.
+	 */
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		//logging in - create timer
+		// Check if the player is logged in
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			//if the player has just logged in and is not in the abyss (teleporting into the abyss will cause the game state to change - therefore the timer is handled directly)
+			// If the skull duration is set, there is no active timer, and the player is not in the Abyss
 			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
 			{
+				// Add timer with the SkullDuration from the config and set cautiousTimer
 				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
 			}
-			//sets the initial state of the equipment checker.
+			// Update current equipment for equipmentManager
 			equipmentManager.updateCurrentEquipment();
 		}
-		//logged out or hopping - stop timer
+		// Check if the player is on the login screen or hopping worlds
 		else if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN || gameStateChanged.getGameState() == GameState.HOPPING)
 		{
+			// Check if timerManager has a timer
 			if (timerManager.getTimer() != null)
 			{
+				// Log the remaining time in minutes
 				log.debug("Skull timer paused with {} minutes remaining.", timerManager.getTimer().getRemainingTime().toMinutes());
+				// Save the remaining time and remove the timer
 				timerManager.removeTimer(true);
 			}
+			// Clear combat records from combatManager
 			combatManager.clearRecords();
 		}
 	}
 
-	/*
-		This event if the player talks to the Emblem Trader.
- 	*/
+	/**
+	 * This event is triggered if the player talks to the Emblem Trader.
+	 *
+	 * @param chatMessage The event that contains the chat message.
+	 */
 	@Subscribe
 	public void onChatMessage(ChatMessage chatMessage)
 	{
@@ -151,13 +162,16 @@ public class SkullTimerPlugin extends Plugin
 		if (chatMessage.getType() == ChatMessageType.MESBOX && (chatMessage.getMessage().equalsIgnoreCase("Your PK skull will now last for the full 20 minutes.") ||
 		chatMessage.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
+			// Add a 20-minute timer when the player receives a skull from the Emblem Trader
 			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
 		}
 	}
 
-	/*
-		This event is used to remove the skull timer should the icon expire.
- 	*/
+	/**
+	 * This event is used to remove the skull timer should the icon expire.
+	 *
+	 * @param gameTick The event that indicates a game tick has occurred.
+	 */
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
@@ -191,13 +205,15 @@ public class SkullTimerPlugin extends Plugin
 		{
 			return;
 		}
-
+		// Remove the timer and reset the cautious timer config
 		timerManager.removeTimer(false);
 		config.cautiousTimer(false);
 	}
 
-	/*
-		This event is used for item checks.
+	/**
+	 * This event is used for item checks.
+	 *
+	 * @param itemContainerChanged The event that indicates an item container has changed.
 	 */
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
@@ -213,8 +229,10 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	/*
-		This event is used to confirm if the player has been teleported to the abyss.
+	/**
+	 * This event is used to confirm if the player has been teleported to the Abyss.
+	 *
+	 * @param overheadTextChanged The event that indicates overhead text has changed.
 	 */
 	@Subscribe
 	public void onOverheadTextChanged(OverheadTextChanged overheadTextChanged)
@@ -228,8 +246,10 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
-	/*
-		PVP Events - Interaction then animation
+	/**
+	 * This event is triggered when an interaction changes in PVP scenarios
+	 *
+	 * @param interactingChanged The event that indicates an interaction has changed.
 	 */
 	@Subscribe
 	public void onInteractingChanged(InteractingChanged interactingChanged)
@@ -256,6 +276,11 @@ public class SkullTimerPlugin extends Plugin
 		combatManager.onPlayerInteractionChange(sourceName, isTargetLocalPlayer);
 	}
 
+	/**
+	 * This event is triggered when a hitsplat is applied to an actor.
+	 *
+	 * @param hitsplatApplied The event that indicates a hitsplat has been applied.
+	 */
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied)
 	{
@@ -280,6 +305,11 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * This event is triggered when an animation changes for an actor.
+	 *
+	 * @param animationChanged The event that indicates an animation has changed.
+	 */
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged animationChanged)
 	{
@@ -319,6 +349,11 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * This event is triggered when a player despawns.
+	 *
+	 * @param playerDespawned The event that indicates a player has despawned.
+	 */
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned playerDespawned)
 	{
@@ -353,6 +388,11 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * This event is triggered when an actor dies.
+	 *
+	 * @param actorDeath The event that indicates an actor has died.
+	 */
 	@Subscribe
 	public void onActorDeath(ActorDeath actorDeath)
 	{
@@ -378,6 +418,11 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * This event is triggered when the configuration changes.
+	 *
+	 * @param configChanged The event that indicates the configuration has changed.
+	 */
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
@@ -387,6 +432,12 @@ public class SkullTimerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Provides the configuration for the Skull Timer plugin.
+	 *
+	 * @param configManager The configuration manager.
+	 * @return The Skull Timer configuration.
+	 */
 	@Provides
 	SkullTimerConfig provideConfig(ConfigManager configManager)
 	{

@@ -25,22 +25,53 @@ package com.skulltimer;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import javax.imageio.ImageIO;
+import javax.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ItemID;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.Timer;
 
+@Slf4j
 public class SkulledTimer extends Timer
 {
+	@Inject
+	ItemManager itemManager;
+	@Inject
+	SkullTimerConfig config;
+
 	private final Color textColour;
 	private final Color warningColour;
 	private final boolean isCautious;
-	public SkulledTimer(Duration duration, BufferedImage image, SkullTimerPlugin plugin, Color textColour, Color warningColour, boolean isCautious)
+
+	public SkulledTimer(Duration duration, ItemManager itemManager, SkullTimerConfig skullTimerConfig, SkullTimerPlugin plugin, boolean isCautious)
 	{
-		super(duration.toMillis(), ChronoUnit.MILLIS, image, plugin);
-		this.textColour = textColour;
-		this.warningColour = warningColour;
+		super(duration.toMillis(), ChronoUnit.MILLIS, itemManager.getImage(ItemID.SKULL), plugin);
+		this.itemManager = itemManager;
+		this.config = skullTimerConfig;
 		this.isCautious = isCautious;
+
+		super.setImage(getTimerIcon());
+
+		String tooltipText = "Time left until your character becomes unskulled.";
+
+		if (isCautious)
+		{
+			this.textColour = config.textColourCautious();
+			this.warningColour = config.warningTextColourCautious();
+			tooltipText += "  WARNING: THIS TIMER MAY BE INACCURATE.";
+		} else
+		{
+			this.textColour = config.textColour();
+			this.warningColour = config.warningTextColour();
+		}
+
+		this.setTooltip(tooltipText);
 	}
 
 	public Duration getRemainingTime()
@@ -63,5 +94,22 @@ public class SkulledTimer extends Timer
 	public boolean isCautious()
 	{
 		return isCautious;
+	}
+
+	public BufferedImage getTimerIcon()
+	{
+		try (InputStream stream = SkulledTimer.class.getResourceAsStream("/timericon.png"))
+		{
+			if (stream == null)
+			{
+				log.debug("Stream is null, using default icon.");
+				return itemManager.getImage(ItemID.SKULL);
+			}
+			return ImageIO.read(stream);
+		} catch (IOException e)
+		{
+			log.debug("Cannot find timer icon, using default.");
+			return itemManager.getImage(ItemID.SKULL);
+		}
 	}
 }

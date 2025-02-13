@@ -29,7 +29,6 @@ import com.skulltimer.SkulledTimer;
 import java.time.Duration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ItemID;
 import javax.inject.Inject;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
@@ -88,17 +87,9 @@ public class TimerManager
 
 			if (!timerDuration.isNegative() && !timerDuration.isZero())
 			{
-				if (config.cautiousTimerToggle() && useCautiousTimer)
-				{
-					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColourCautious(), config.warningTextColourCautious(), true);
-					timer.setTooltip("Time left until your character becomes unskulled. WARNING: THIS TIMER MAY BE INACCURATE.");
-				}
-				else
-				{
-					timer = new SkulledTimer(timerDuration, itemManager.getImage(ItemID.SKULL), skullTimerPlugin, config.textColour(), config.warningTextColour(), false);
-					timer.setTooltip("Time left until your character becomes unskulled.");
+				boolean useCautious = config.cautiousTimerToggle() && useCautiousTimer;
+				timer = new SkulledTimer(timerDuration, itemManager, config, skullTimerPlugin, useCautious);
 
-				}
 				statusManager.setTimerEndTime(timer.getEndTime());
 				infoBoxManager.addInfoBox(timer);
 				log.debug("Skull timer started with {} minutes remaining.", getTimer().getRemainingTime().toMinutes());
@@ -124,6 +115,7 @@ public class TimerManager
 		}
 		else
 		{
+			log.debug("Setting config duration to default.");
 			config.skullDuration(Duration.ZERO);
 			config.cautiousTimer(timer != null && timer.isCautious());
 		}

@@ -426,9 +426,9 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (timerManager.getTimer() != null)
+		if (timerManager.getTimer() != null && client.getGameState() == GameState.LOGGED_IN)
 		{
-			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), false);
+			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), config.cautiousTimer());
 		}
 	}
 

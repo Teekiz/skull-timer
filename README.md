@@ -42,4 +42,8 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 
 If you have suggestions, improvements, or have encountered a bug relating to the plugin, please [create an issue](https://github.com/Teekiz/skull-timer/issues/new) with the relevant details.
 
+# Credits
+
+- [juusokarjanlahti](https://github.com/juusokarjanlahti) - Original equipment timer feature, development support (including code readability and feature suggestions/improvements) and improved README documentation.
+
 

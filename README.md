@@ -1,4 +1,4 @@
-# Runelite Skulled Timer plugin ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/emblem-trader-skull-timer) ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/emblem-trader-skull-timer)
+# Runelite Skulled Timer Plugin ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/emblem-trader-skull-timer) ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/emblem-trader-skull-timer)
 
 
 
@@ -22,7 +22,7 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 
 3. Automatic Updates: The timer adjusts based on interactions with NPCs and other players.
 
-4. Expiration & Removal: The timer is removed when the skull expires or the player dies
+4. Expiration & Removal: The timer is removed when the skull expires or the player dies.
 
 ## Installation
 
@@ -38,6 +38,23 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 
 - Click Install
 
+## Configuration
+
+<details>
+<summary>Text and Warning Text Colours:</summary>
+This will change the colour of the text on the timer. When the timer has 30 seconds remaining or less, it will use the warning text colour.
+</details>
+
+<details>
+<summary>Enable PVP timer:</summary>
+If checked, whenever you enage in a PVP encounter where you receive a skull icon, a timer will start.
+</details>
+
+<details>
+<summary>Enable Uncertain Timer (Text and Warning Text Colours):</summary>
+If checked, whenever a timer is started where the accuracy cannot be guaranteed, a timer using the text colours from text colour (uncertain) and warning text colour (uncertain) will be used. The accuracy of the timer may not 100% accurate if you attack another player who has left your vision. If unchecked, a timer will still be started, but it will remain unchanged from the standard timer.
+</details>
+
 ## Help and discussion
 
 If you have suggestions, improvements, or have encountered a bug relating to the plugin, please [create an issue](https://github.com/Teekiz/skull-timer/issues/new) with the relevant details.
@@ -45,5 +62,6 @@ If you have suggestions, improvements, or have encountered a bug relating to the
 # Credits
 
 - [juusokarjanlahti](https://github.com/juusokarjanlahti) - Original equipment timer feature, development support (including code readability and feature suggestions/improvements) and improved README documentation.
+- [Old School Runescape Wiki](https://oldschool.runescape.wiki/) - [Source](https://oldschool.runescape.wiki/w/File:Skull_(status)_icon.png) of the image used for the plugins icon and a useful source of information which aided the develop this plugin (primarily [Skull (status)](https://oldschool.runescape.wiki/w/Skull_(status)) and [weapons](https://oldschool.runescape.wiki/w/Weapons) pages).
 
 

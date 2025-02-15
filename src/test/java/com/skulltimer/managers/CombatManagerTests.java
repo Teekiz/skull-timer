@@ -52,7 +52,7 @@ public class CombatManagerTests extends TimerMocks
 	{
 		when(player.getName()).thenReturn(null);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class CombatManagerTests extends TimerMocks
 		when(config.pvpToggle()).thenReturn(true);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class CombatManagerTests extends TimerMocks
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(2)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(2)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -87,7 +87,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player attacked back, don't restart timer
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -97,7 +97,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player attacked back, don't restart timer
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 		assertEquals(CombatStatus.ATTACKER, combatManager.getCombatRecords().get("PlayerOne").getCombatStatus());
 	}
 
@@ -112,7 +112,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player had logged out, their attacking record would have been reset, causing them to become the aggressor.
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class CombatManagerTests extends TimerMocks
 		interaction.setCombatStatus(CombatStatus.UNCERTAIN);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), true);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -136,7 +136,7 @@ public class CombatManagerTests extends TimerMocks
 		interaction.setCombatStatus(CombatStatus.UNCERTAIN);
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), true);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -151,7 +151,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
 		//because the player attacked back, don't restart timer
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.getCombatRecords().put("PlayerOne", interaction);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -171,7 +171,7 @@ public class CombatManagerTests extends TimerMocks
 		when(config.pvpToggle()).thenReturn(false);
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
 
-		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 		assertEquals(1, combatManager.getCombatRecords().size());
 	}
 
@@ -185,7 +185,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.getCombatRecords().put("PlayerOne", combatInteraction);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 	}
 
 	@Test
@@ -198,7 +198,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.getCombatRecords().put("PlayerOne", combatInteraction);
 
 		combatManager.onTargetHitsplat(player, localPlayer, tickCounter++);
-		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.PVP_DURATION.getDuration());
 
 		assertFalse(combatInteraction.hasRetaliated());
 	}

@@ -128,8 +128,8 @@ public class SkullTimerPlugin extends Plugin
 			// If the skull duration is set, there is no active timer, and the player is not in the Abyss
 			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
 			{
-				// Add timer with the SkullDuration from the config and set cautiousTimer
-				timerManager.addTimer(config.skullDuration(), config.cautiousTimer());
+				// Add timer with the SkullDuration from the config
+				timerManager.addTimer(config.skullDuration());
 			}
 			// Update current equipment for equipmentManager
 			equipmentManager.updateCurrentEquipment();
@@ -163,7 +163,7 @@ public class SkullTimerPlugin extends Plugin
 		chatMessage.getMessage().equalsIgnoreCase("You are now skulled.")))
 		{
 			// Add a 20-minute timer when the player receives a skull from the Emblem Trader
-			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+			timerManager.addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 		}
 	}
 
@@ -205,9 +205,8 @@ public class SkullTimerPlugin extends Plugin
 		{
 			return;
 		}
-		// Remove the timer and reset the cautious timer config
+		// Remove the timer
 		timerManager.removeTimer(false);
-		config.cautiousTimer(false);
 	}
 
 	/**
@@ -371,15 +370,19 @@ public class SkullTimerPlugin extends Plugin
 		{
 			log.debug("Player {} despawned. Target has been set to dead status.", playerName);
 		}
-		else if (combatInteraction.hasRetaliated())
+		else if (combatInteraction.isAttacker())
 		{
-			log.debug("Player {} was in combat. Target has been set to inactive.", playerName);
-			combatInteraction.setCombatStatus(CombatStatus.INACTIVE);
+			log.debug("Player {} despawned but was attacker. Player status remains attacker.", playerName);
 		}
 		else if (locationManager.hasPlayerLoggedOut(player))
 		{
 			log.debug("Player {} has logged out. Target has been set to logged out.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.LOGGED_OUT);
+		}
+		else if (combatInteraction.hasRetaliated())
+		{
+			log.debug("Player {} was in combat. Target has been set to inactive.", playerName);
+			combatInteraction.setCombatStatus(CombatStatus.INACTIVE);
 		}
 		else
 		{
@@ -426,9 +429,16 @@ public class SkullTimerPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
+		//config options that should not affect the timer (other plugin configurations or duration for the skull)
+		if (configChanged.getGroup() == null || configChanged.getKey() == null ||
+			!configChanged.getGroup().equalsIgnoreCase("skulledtimer") || configChanged.getKey().equalsIgnoreCase("skullDuration"))
+		{
+			return;
+		}
+
 		if (timerManager.getTimer() != null && client.getGameState() == GameState.LOGGED_IN)
 		{
-			timerManager.addTimer(timerManager.getTimer().getRemainingTime(), config.cautiousTimer());
+			timerManager.addTimer(timerManager.getTimer().getRemainingTime());
 		}
 	}
 

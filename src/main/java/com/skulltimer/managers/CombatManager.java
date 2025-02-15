@@ -163,7 +163,7 @@ public class CombatManager
 			log.debug("Target record created for player {}.", player.getName());
 			CombatInteraction combatInteraction = new CombatInteraction();
 			combatRecords.put(player.getName(), combatInteraction);
-			addTimerCheck(false);
+			addTimerCheck();
 			return;
 		}
 
@@ -173,26 +173,27 @@ public class CombatManager
 		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
 			log.debug("Player {} was previously killed. Starting timer.", player.getName());
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
-			addTimerCheck(false);
+			addTimerCheck();
 		}
 
 		//if the player has logged out at some point - the player can't attack them unless they retaliated
 		else if (combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT) {
 			log.debug("Player {} was previously logged out. Starting timer.", player.getName());
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
-			addTimerCheck(false);
+			addTimerCheck();
 		}
 
+		//todo - uncertain/inactive
 		//if the player has moved away from the player, set the status to unknown, as the timer will now possibly be out of sync
 		else if (combatInteraction.getCombatStatus() == CombatStatus.UNCERTAIN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
 			log.debug("Player {} is unknown but {} has skull. Starting timer.", player.getName(), localPlayer.getName());
-			addTimerCheck(true);
+			addTimerCheck();
 		}
 
 		//if the target has retaliated at any point during the fight, then a new timer will not be started
 		else if (!combatInteraction.hasRetaliated()) {
 			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
-			addTimerCheck(false);
+			addTimerCheck();
 		}
 
 		else
@@ -269,12 +270,11 @@ public class CombatManager
 
 	/**
 	 * A method to determine if a timer should be started.
-	 * @param useCautious a {@link Boolean} value if the timer should be created as a {@code cautious} timer.
 	 */
-	private void addTimerCheck(boolean useCautious)
+	private void addTimerCheck()
 	{
 		if (config.pvpToggle()){
-			timerManager.addTimer(TimerDurations.PVP_DURATION.getDuration(), useCautious);
+			timerManager.addTimer(TimerDurations.PVP_DURATION.getDuration());
 		}
 	}
 

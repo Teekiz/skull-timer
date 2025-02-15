@@ -62,7 +62,7 @@ public class EquipmentManagerTests extends TimerMocks
 		//checking if the timer be started
 		changedItemIDSlots.add(EquipmentInventorySlot.AMULET.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 		verify(timerManager, times(1)).removeTimer(false);
 	}
 
@@ -81,7 +81,7 @@ public class EquipmentManagerTests extends TimerMocks
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(null);
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -96,7 +96,7 @@ public class EquipmentManagerTests extends TimerMocks
 		//checking if the timer be started
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -110,13 +110,13 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//unequipped item
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class EquipmentManagerTests extends TimerMocks
 		//start up and game state changed method
 		when(equipmentManager.getEquipment()).thenReturn(equipment);
 		equipmentManager.updateCurrentEquipment();
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -139,7 +139,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//equipping indefinite skulled effect item
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
@@ -171,7 +171,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -190,7 +190,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.AMULET.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//remove none-permanent item
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
@@ -198,7 +198,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -217,7 +217,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.AMULET.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//removing none permanent
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(null);
@@ -225,7 +225,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -247,7 +247,7 @@ public class EquipmentManagerTests extends TimerMocks
 
 		//method check
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -288,7 +288,7 @@ public class EquipmentManagerTests extends TimerMocks
 
 		//method check
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		when(capeMock.getId()).thenReturn(SkulledItems.CAPE_OF_SKULLS.getItemID());
@@ -296,7 +296,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
 
-		verify(timerManager, times(2)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(2)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -319,26 +319,26 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//swapped back
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMock);
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//swapping out amulet
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMockTwo);
 		changedItemIDSlots.clear();
 		changedItemIDSlots.add(EquipmentInventorySlot.AMULET.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//swapping out cape
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMockTwo);
 		changedItemIDSlots.clear();
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -360,12 +360,12 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//swapped back
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMockTwo);
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 
 		//swapping out amulet
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMock);
@@ -379,7 +379,7 @@ public class EquipmentManagerTests extends TimerMocks
 		changedItemIDSlots.clear();
 		changedItemIDSlots.add(EquipmentInventorySlot.CAPE.getSlotIdx());
 		equipmentManager.shouldTimerBeStarted(changedItemIDSlots);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test

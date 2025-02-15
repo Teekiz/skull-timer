@@ -48,21 +48,6 @@ public interface SkullTimerConfig extends Config
 	)
 	void skullDuration(Duration skullDuration);
 
-	@ConfigItem(
-		keyName = "cautiousTimer",
-		name = "",
-		description = "",
-		hidden = true
-	)
-	boolean cautiousTimer();
-
-	@ConfigItem(
-		keyName = "cautiousTimer",
-		name = "",
-		description = ""
-	)
-	void cautiousTimer(boolean cautiousTimer);
-
 	@ConfigSection(
 		position = 1,
 		name = "Experimental",
@@ -77,28 +62,4 @@ public interface SkullTimerConfig extends Config
 		section = experimental
 	)
 	default boolean pvpToggle() {return true;}
-
-	@ConfigItem(
-		keyName = "cautiousTimerToggle",
-		name="Enable uncertain timer",
-		description = "Toggles whether the timer should appear differently if the plugin is unable to determine if the timer is accurate.",
-		section = experimental
-	)
-	default boolean cautiousTimerToggle() {return true;}
-
-	@ConfigItem(
-		keyName = "textColourCautious",
-		name="Text Colour (uncertain)",
-		description = "The colour of the countdown text displayed on the timer when the timer is unsure of its accuracy.",
-		section = experimental
-	)
-	default Color textColourCautious() {return Color.YELLOW;}
-
-	@ConfigItem(
-		keyName = "warningTextColourCautious",
-		name="Warning Text Colour (uncertain)",
-		description = "The colour of the countdown text displayed on the timer when the timer is unsure of its accuracy.",
-		section = experimental
-	)
-	default Color warningTextColourCautious() {return Color.magenta;}
 }

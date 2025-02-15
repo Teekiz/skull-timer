@@ -78,7 +78,7 @@ public class TimerManager
 	 *
 	 * @param timerDuration The {@link Duration} of the timer to be created.
 	 */
-	public void addTimer(Duration timerDuration, boolean useCautiousTimer) throws IllegalArgumentException
+	public void addTimer(Duration timerDuration) throws IllegalArgumentException
 	{
 		if (shouldTimerBeUpdated(timerDuration))
 		{
@@ -87,8 +87,7 @@ public class TimerManager
 
 			if (!timerDuration.isNegative() && !timerDuration.isZero())
 			{
-				boolean useCautious = config.cautiousTimerToggle() && useCautiousTimer;
-				timer = new SkulledTimer(timerDuration, itemManager, config, skullTimerPlugin, useCautious);
+				timer = new SkulledTimer(timerDuration, itemManager, config, skullTimerPlugin);
 
 				statusManager.setTimerEndTime(timer.getEndTime());
 				infoBoxManager.addInfoBox(timer);
@@ -111,13 +110,11 @@ public class TimerManager
 		{
 			log.debug("Saving existing timer duration: {}.", timer.getRemainingTime());
 			config.skullDuration(timer.getRemainingTime());
-			config.cautiousTimer(timer != null && timer.isCautious());
 		}
 		else
 		{
 			log.debug("Setting config duration to default.");
 			config.skullDuration(Duration.ZERO);
-			config.cautiousTimer(timer != null && timer.isCautious());
 		}
 
 		infoBoxManager.removeIf(t -> t instanceof SkulledTimer);

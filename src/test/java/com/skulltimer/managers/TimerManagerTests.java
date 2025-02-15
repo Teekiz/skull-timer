@@ -2,19 +2,15 @@ package com.skulltimer.managers;
 
 import com.skulltimer.mocks.TimerMocks;
 import java.time.Duration;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -24,25 +20,18 @@ public class TimerManagerTests extends TimerMocks
 	@InjectMocks
 	TimerManager timerManager;
 
-	@BeforeEach
-	public void startUp()
-	{
-		lenient().when(config.cautiousTimerToggle()).thenReturn(true);
-	}
-
 	@Test
 	public void startStandardTimer()
 	{
-		timerManager.addTimer(Duration.ofMinutes(5), false);
+		timerManager.addTimer(Duration.ofMinutes(5));
 		assertNotNull(timerManager.getTimer());
-		assertFalse(timerManager.getTimer().isCautious());
 	}
 
 	@Test
 	public void startTimer_WithExistingTimerLessThanReplacement()
 	{
-		timerManager.addTimer(Duration.ofMinutes(5), false);
-		timerManager.addTimer(Duration.ofMinutes(6), false);
+		timerManager.addTimer(Duration.ofMinutes(5));
+		timerManager.addTimer(Duration.ofMinutes(6));
 
 		assertNotNull(timerManager.getTimer());
 		assertEquals(Duration.ofMinutes(6), timerManager.getTimer().getDuration());
@@ -51,8 +40,8 @@ public class TimerManagerTests extends TimerMocks
 	@Test
 	public void startTimer_WithExistingTimerGreaterThanReplacement()
 	{
-		timerManager.addTimer(Duration.ofMinutes(10), false);
-		timerManager.addTimer(Duration.ofMinutes(6), false);
+		timerManager.addTimer(Duration.ofMinutes(10));
+		timerManager.addTimer(Duration.ofMinutes(6));
 
 		assertNotNull(timerManager.getTimer());
 		assertEquals(Duration.ofMinutes(10), timerManager.getTimer().getDuration());
@@ -61,33 +50,25 @@ public class TimerManagerTests extends TimerMocks
 	@Test
 	public void startTimer_WithNegativeAndZeroTimeDuration()
 	{
-		timerManager.addTimer(Duration.ofMinutes(-15), false);
+		timerManager.addTimer(Duration.ofMinutes(-15));
 		assertNull(timerManager.getTimer());
 
-		timerManager.addTimer(Duration.ofMinutes(0), false);
+		timerManager.addTimer(Duration.ofMinutes(0));
 		assertNull(timerManager.getTimer());
 
-		timerManager.addTimer(Duration.ZERO, false);
+		timerManager.addTimer(Duration.ZERO);
 		assertNull(timerManager.getTimer());
-	}
-
-	@Test
-	public void startCautiousTimer()
-	{
-		timerManager.addTimer(Duration.ofMinutes(12), true);
-		assertNotNull(timerManager.getTimer());
-		assertTrue(timerManager.getTimer().isCautious());
 	}
 
 	@Test
 	public void stopTimer()
 	{
-		timerManager.addTimer(Duration.ofMinutes(12), false);
+		timerManager.addTimer(Duration.ofMinutes(12));
 		assertNotNull(timerManager.getTimer());
 		timerManager.removeTimer(true);
 		assertNull(timerManager.getTimer());
 
-		timerManager.addTimer(Duration.ofMinutes(5), true);
+		timerManager.addTimer(Duration.ofMinutes(5));
 		assertNotNull(timerManager.getTimer());
 		timerManager.removeTimer(false);
 		assertNull(timerManager.getTimer());
@@ -96,36 +77,16 @@ public class TimerManagerTests extends TimerMocks
 	@Test
 	public void stopTimer_Configuration_Saving()
 	{
-		timerManager.addTimer(Duration.ofMinutes(12), false);
+		timerManager.addTimer(Duration.ofMinutes(12));
 		timerManager.removeTimer(true);
 		verify(config, times(2)).skullDuration(any(Duration.class));
-		verify(config, times(2)).cautiousTimer(false);
-	}
-
-	@Test
-	public void stopTimer_Configuration_SavingWithCautiousTimer()
-	{
-		timerManager.addTimer(Duration.ofMinutes(3), true);
-		timerManager.removeTimer(true);
-		verify(config, times(2)).skullDuration(any(Duration.class));
-		verify(config, times(1)).cautiousTimer(true);
 	}
 
 	@Test
 	public void stopTimer_Configuration_NotSaving()
 	{
-		timerManager.addTimer(Duration.ofMinutes(30), false);
+		timerManager.addTimer(Duration.ofMinutes(30));
 		timerManager.removeTimer(false);
 		verify(config, times(2)).skullDuration(Duration.ZERO);
-		verify(config, times(2)).cautiousTimer(false);
-	}
-
-	@Test
-	public void stopTimer_Configuration_NotSavingWithCautiousTimer()
-	{
-		timerManager.addTimer(Duration.ofMinutes(6), true);
-		timerManager.removeTimer(false);
-		verify(config, times(2)).skullDuration(Duration.ZERO);
-		verify(config, times(1)).cautiousTimer(true);
 	}
 }

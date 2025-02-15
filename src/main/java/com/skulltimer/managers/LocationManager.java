@@ -70,7 +70,7 @@ public class LocationManager
 		{
 				hasBeenTeleportedIntoAbyss = false;
 				log.debug("Player has been teleported into the abyss. Starting timer.");
-				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 				return true;
 		}
 		else

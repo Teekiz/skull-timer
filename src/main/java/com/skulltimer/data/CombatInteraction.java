@@ -46,4 +46,13 @@ public class CombatInteraction
 			combatStatus == CombatStatus.INACTIVE ||
 			combatStatus == CombatStatus.ATTACKER;
 	}
+
+	/**
+	 * A method to determine if the player was the instigator of the combat interaction.
+	 * @return {@code true} if the player started the fight. Otherwise, returns {@code false}.
+	 */
+	public boolean isAttacker()
+	{
+		return combatStatus == CombatStatus.ATTACKER;
+	}
 }

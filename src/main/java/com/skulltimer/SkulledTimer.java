@@ -47,31 +47,21 @@ public class SkulledTimer extends Timer
 
 	private final Color textColour;
 	private final Color warningColour;
-	private final boolean isCautious;
 
-	public SkulledTimer(Duration duration, ItemManager itemManager, SkullTimerConfig skullTimerConfig, SkullTimerPlugin plugin, boolean isCautious)
+	public SkulledTimer(Duration duration, ItemManager itemManager, SkullTimerConfig skullTimerConfig, SkullTimerPlugin plugin)
 	{
 		super(duration.toMillis(), ChronoUnit.MILLIS, itemManager.getImage(ItemID.SKULL), plugin);
 		this.itemManager = itemManager;
 		this.config = skullTimerConfig;
-		this.isCautious = isCautious;
 
 		super.setImage(getTimerIcon());
 
 		String tooltipText = "Time left until your character becomes unskulled.";
 
-		if (isCautious)
-		{
-			this.textColour = config.textColourCautious();
-			this.warningColour = config.warningTextColourCautious();
-			tooltipText += "  WARNING: THIS TIMER MAY BE INACCURATE.";
-		} else
-		{
-			this.textColour = config.textColour();
-			this.warningColour = config.warningTextColour();
-		}
-
+		this.textColour = config.textColour();
+		this.warningColour = config.warningTextColour();
 		this.setTooltip(tooltipText);
+
 	}
 
 	public Duration getRemainingTime()
@@ -89,11 +79,6 @@ public class SkulledTimer extends Timer
 		{
 			return textColour;
 		}
-	}
-
-	public boolean isCautious()
-	{
-		return isCautious;
 	}
 
 	public BufferedImage getTimerIcon()

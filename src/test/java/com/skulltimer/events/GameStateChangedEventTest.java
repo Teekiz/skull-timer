@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,7 +27,7 @@ public class GameStateChangedEventTest extends PluginMocks
 
 		when(gameStateChanged.getGameState()).thenReturn(GameState.LOGGED_IN);
 		eventBus.post(gameStateChanged);
-		verify(timerManager, times(0)).addTimer(any(Duration.class), anyBoolean());
+		verify(timerManager, times(0)).addTimer(any(Duration.class));
 	}
 
 	@Test
@@ -39,7 +38,7 @@ public class GameStateChangedEventTest extends PluginMocks
 
 		when(gameStateChanged.getGameState()).thenReturn(GameState.LOGGED_IN);
 		eventBus.post(gameStateChanged);
-		verify(timerManager, times(0)).addTimer(any(Duration.class), anyBoolean());
+		verify(timerManager, times(0)).addTimer(any(Duration.class));
 	}
 
 	@Test
@@ -51,7 +50,7 @@ public class GameStateChangedEventTest extends PluginMocks
 
 		when(gameStateChanged.getGameState()).thenReturn(GameState.LOGGED_IN);
 		eventBus.post(gameStateChanged);
-		verify(timerManager, times(0)).addTimer(any(Duration.class), anyBoolean());
+		verify(timerManager, times(0)).addTimer(any(Duration.class));
 	}
 
 	@Test
@@ -63,7 +62,7 @@ public class GameStateChangedEventTest extends PluginMocks
 
 		when(gameStateChanged.getGameState()).thenReturn(GameState.LOGGED_IN);
 		eventBus.post(gameStateChanged);
-		verify(timerManager, times(1)).addTimer(any(Duration.class), anyBoolean());
+		verify(timerManager, times(1)).addTimer(any(Duration.class));
 	}
 
 	@Test

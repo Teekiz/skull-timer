@@ -33,7 +33,7 @@ public class ChatMessageEventTest extends PluginMocks
 	{
 		when(chatMessage.getMessage()).thenReturn("You are now skulled.");
 		eventBus.post(chatMessage);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -41,7 +41,7 @@ public class ChatMessageEventTest extends PluginMocks
 	{
 		when(chatMessage.getMessage()).thenReturn("Your PK skull will now last for the full 20 minutes.");
 		eventBus.post(chatMessage);
-		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class ChatMessageEventTest extends PluginMocks
 	{
 		when(chatMessage.getMessage()).thenReturn("A test message");
 		eventBus.post(chatMessage);
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 
 	@Test
@@ -57,6 +57,6 @@ public class ChatMessageEventTest extends PluginMocks
 	{
 		when(chatMessage.getType()).thenReturn(ChatMessageType.UNKNOWN);
 		eventBus.post(chatMessage);
-		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.TRADER_AND_ITEM_DURATION.getDuration());
 	}
 }

@@ -55,7 +55,7 @@ public class LocationManagerTests extends TimerMocks
 		locationManager.setHasBeenTeleportedIntoAbyss(false);
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(3019, 4814, 0));
 		locationManager.isInAbyss();
-		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class LocationManagerTests extends TimerMocks
 		locationManager.setHasBeenTeleportedIntoAbyss(true);
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(3055, 4860, 0));
 		locationManager.isInAbyss();
-		verify(timerManager, times(1)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+		verify(timerManager, times(1)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class LocationManagerTests extends TimerMocks
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(3015, 4831, 0));
 		lenient().when(player.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		locationManager.isInAbyss();
-		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class LocationManagerTests extends TimerMocks
 		locationManager.setHasBeenTeleportedIntoAbyss(false);
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(2785, 3463, 0));
 		locationManager.isInAbyss();
-		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class LocationManagerTests extends TimerMocks
 		locationManager.setHasBeenTeleportedIntoAbyss(true);
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(1496, 3040, 0));
 		locationManager.isInAbyss();
-		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration(), false);
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 
 	@Test

@@ -85,11 +85,8 @@ public class AnimationChangedEventTest extends PluginMocks
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
 
-		when(player.getPlayerComposition()).thenReturn(playerComposition);
-		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
-
 		eventBus.post(animationChanged);
-		verify(equipmentManager, times(1)).getWeaponHitDelay(1289, 100);
+		verify(equipmentManager, times(1)).getWeaponHitDelay(player);
 	}
 
 	@Test
@@ -102,10 +99,7 @@ public class AnimationChangedEventTest extends PluginMocks
 
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-
-		when(player.getPlayerComposition()).thenReturn(playerComposition);
-		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1289);
-		when(equipmentManager.getWeaponHitDelay(1289, 100)).thenReturn(WeaponHitDelay.MELEE_STANDARD);
+		when(equipmentManager.getWeaponHitDelay(player)).thenReturn(WeaponHitDelay.MELEE_STANDARD);
 
 		when(locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player)).thenReturn(10);
 
@@ -123,9 +117,6 @@ public class AnimationChangedEventTest extends PluginMocks
 
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("LocalPlayer");
-
-		when(player.getPlayerComposition()).thenReturn(playerComposition);
-		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(0);
 
 		eventBus.post(animationChanged);
 		verify(combatManager, times(0)).addExpectedHitTick(anyString(), anyInt(), any(AttackType.class));

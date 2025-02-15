@@ -6,6 +6,15 @@ This plugin tracks the players skull duration and status.
 
 This is particularly useful for ironmen and lower-level main accounts aiming to maximize drop rates in Revenant Caves or for tracking the duration of the skull status in PvP scenarios.
 
+## Table of contents
+1. [Features](#features)
+2. [How it works](#how-it-works)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Help and discussion](#help-and-discussion)
+6. [Credits](#credits)
+7. [Changelog](#changelog)
+
 ## Features
 
 - Real-time Skull Status Timer
@@ -26,17 +35,17 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 
 ## Installation
 
-- Download and install RuneLite from the official website https://runelite.net
+- Download and install RuneLite from the official website https://runelite.net.
 
-- Launch RuneLite
+- Launch RuneLite.
 
-- Navigate to Plugin Hub by clicking the Wrench icon on the top right Runelite window
+- Navigate to Plugin Hub by clicking the Wrench icon on the top right Runelite window.
 
-- Click the Plugin-Hub button on the right side near the top
+- Click the Plugin-Hub button on the right side near the top.
 
-- Search for the plugin
+- Search for the plugin.
 
-- Click Install
+- Click Install.
 
 ## Configuration
 

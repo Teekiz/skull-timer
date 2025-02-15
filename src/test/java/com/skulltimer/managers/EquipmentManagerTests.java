@@ -11,6 +11,9 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
+import net.runelite.api.Player;
+import net.runelite.api.PlayerComposition;
+import net.runelite.api.kit.KitType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +44,10 @@ public class EquipmentManagerTests extends TimerMocks
 	Item capeMockTwo;
 	@Mock
 	ItemComposition itemComposition;
+	@Mock
+	Player player;
+	@Mock
+	PlayerComposition playerComposition;
 
 	List<Integer> changedItemIDSlots;
 
@@ -385,34 +392,54 @@ public class EquipmentManagerTests extends TimerMocks
 	@Test
 	public void getWeaponHitDelay_NotSpell()
 	{
-		assertEquals(WeaponHitDelay.MAGIC_STANDARD_WITH_MELEE, equipmentManager.getWeaponHitDelay(20733, 1));
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(20733);
+		when(player.getAnimation()).thenReturn(1);
+
+		assertEquals(WeaponHitDelay.MAGIC_STANDARD_WITH_MELEE, equipmentManager.getWeaponHitDelay(player));
 	}
 
 	@Test
 	public void getWeaponHitDelay_WithRangedWeapon()
 	{
-		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(11785, 7552));
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(11785);
+		when(player.getAnimation()).thenReturn(7552);
+
+		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(player));
 	}
 
 	@Test
 	public void getWeaponHitDelay_WithSpell()
 	{
-		assertEquals(WeaponHitDelay.MAGIC_STANDARD, equipmentManager.getWeaponHitDelay(11785, 727));
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(11785);
+		when(player.getAnimation()).thenReturn(727);
+
+		assertEquals(WeaponHitDelay.MAGIC_STANDARD, equipmentManager.getWeaponHitDelay(player));
 	}
 
 	@Test
 	public void getWeaponHitDelay_WithUndefinedWeapon()
 	{
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1);
+		when(player.getAnimation()).thenReturn(-1);
+
 		when(itemManager.getItemComposition(1)).thenReturn(itemComposition);
 		when(itemComposition.getName()).thenReturn("Armadyl Crossbow");
-		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(1, -1));
+		assertEquals(WeaponHitDelay.RANGED_STANDARD, equipmentManager.getWeaponHitDelay(player));
 	}
 
 	@Test
 	public void getWeaponHitDelay_WithUndefinedWeapon_DoesNotExistInGenericWeapons()
 	{
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+		when(playerComposition.getEquipmentId(KitType.WEAPON)).thenReturn(1);
+		when(player.getAnimation()).thenReturn(-1);
+
 		when(itemManager.getItemComposition(1)).thenReturn(itemComposition);
 		when(itemComposition.getName()).thenReturn("");
-		assertNull(equipmentManager.getWeaponHitDelay(1, -1));
+		assertNull(equipmentManager.getWeaponHitDelay(player));
 	}
 }

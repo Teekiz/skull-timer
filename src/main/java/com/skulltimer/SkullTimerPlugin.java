@@ -321,21 +321,19 @@ public class SkullTimerPlugin extends Plugin
 		}
 
 		Player player = (Player) actor;
-		int animationID = player.getAnimation();
 
-		if (ExcludedAnimations.isExcluded(animationID))
+		if (ExcludedAnimations.isExcluded(player.getAnimation()))
 		{
 			log.debug("Animation is excluded. Ending animation processing.");
 			return;
 		}
 
 		int distance = locationManager.calculateDistanceBetweenPlayers(client.getLocalPlayer(), player);
-		int weaponID = player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
-		WeaponHitDelay weaponHitDelay = equipmentManager.getWeaponHitDelay(weaponID, animationID);
+		WeaponHitDelay weaponHitDelay = equipmentManager.getWeaponHitDelay(player);
 
 		if (weaponHitDelay == null)
 		{
-			log.warn("Weapon {} does not exist in weapons table.", weaponID);
+			log.warn("Weapon does not exist in weapons table.");
 		} else
 		{
 			int hitDelay = weaponHitDelay.calculateHitDelay(distance);
@@ -343,7 +341,7 @@ public class SkullTimerPlugin extends Plugin
 
 			if (combatManager.addExpectedHitTick(player.getName(), gameTickCounter + hitDelay, attackType))
 			{
-				log.debug("Player {} has attacked using weapon {}. Distance {} with a hit delay of {} (current tick: {}, attack type: {}). Attack has been recorded.", player.getName(), weaponID, distance, hitDelay, gameTickCounter, attackType);
+				log.debug("Player {} has attacked from distance {} with a hit delay of {} (current tick: {}, attack type: {}). Attack has been recorded.", player.getName(), distance, hitDelay, gameTickCounter, attackType);
 			}
 		}
 	}

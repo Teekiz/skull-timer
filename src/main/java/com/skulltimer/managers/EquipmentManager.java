@@ -24,8 +24,6 @@
 
 package com.skulltimer.managers;
 
-import com.skulltimer.SkullTimerConfig;
-import com.skulltimer.SkullTimerPlugin;
 import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
@@ -45,6 +43,8 @@ import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.Player;
+import net.runelite.api.kit.KitType;
 import net.runelite.client.game.ItemManager;
 
 /**
@@ -263,11 +263,13 @@ public class EquipmentManager
 
 	/**
 	 * A method used to determine the correct weapon hit delay based on the weapon ID and animation ID.
-	 * @param weaponID The ID of the weapon currently equipped by the player.
-	 * @param animationID The ID of the animation started by the player.
+	 * @param player The player whose {@link WeaponHitDelay} is to be determined.
 	 * @return The corresponding {@link WeaponHitDelay}. If the weapon cannot be found, {@code null} is returned instead.
 	 */
-	public WeaponHitDelay getWeaponHitDelay(int weaponID, int animationID){
+	public WeaponHitDelay getWeaponHitDelay(Player player){
+		int weaponID = getPlayerWeaponID(player);
+		int animationID = player.getAnimation();
+
 		//checks to see if the animation matches a spell animation.
 		WeaponHitDelay spellHitDelay = SpellAnimations.getSpellHitDelay(animationID);
 
@@ -283,9 +285,21 @@ public class EquipmentManager
 			return GenericWeapons.getWeaponTypeHitDelay(weaponName);
 		}
 
+		log.debug("Weapon ID found: {}.", weaponID);
+
 		return (weapon.getSpecialHitDelay() != WeaponHitDelay.NOT_APPLICABLE
 			&& weapon.doesAnimationMatchSpecialAnimation(animationID))
 			? weapon.getSpecialHitDelay()
 			: weapon.getStandardHitDelay();
+	}
+
+	/**
+	 * A helper method to determine the ID of the weapon the player is using.
+	 * @param player The player whose weapon ID is to be found.
+	 * @return The weapon ID that the player is currently using.
+	 */
+	private int getPlayerWeaponID(Player player)
+	{
+		return player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
 	}
 }

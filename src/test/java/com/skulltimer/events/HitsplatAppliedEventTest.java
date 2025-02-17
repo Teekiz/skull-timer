@@ -4,7 +4,6 @@ import com.skulltimer.mocks.PluginMocks;
 import net.runelite.api.Hitsplat;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
-import net.runelite.api.SkullIcon;
 import net.runelite.api.events.HitsplatApplied;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +35,7 @@ public class HitsplatAppliedEventTest extends PluginMocks
 	{
 		when(locationManager.isInWilderness()).thenReturn(false);
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
+		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), anyInt());
 	}
 
 	@Test
@@ -48,7 +47,7 @@ public class HitsplatAppliedEventTest extends PluginMocks
 		when(client.getLocalPlayer()).thenReturn(player);
 
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
+		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), anyInt());
 	}
 
 	@Test
@@ -64,7 +63,7 @@ public class HitsplatAppliedEventTest extends PluginMocks
 		when(localPlayer.getName()).thenReturn("NotPlayer");
 
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
+		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), anyInt());
 	}
 
 	@Test
@@ -75,24 +74,7 @@ public class HitsplatAppliedEventTest extends PluginMocks
 		when(npc.getName()).thenReturn("npc");
 
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
-	}
-
-	@Test
-	public void playerDoesNotHaveSkull()
-	{
-		when(locationManager.isInWilderness()).thenReturn(true);
-		when(hitsplatApplied.getActor()).thenReturn(player);
-		when(hitsplatApplied.getHitsplat()).thenReturn(hitsplat);
-		when(hitsplat.isMine()).thenReturn(true);
-		when(player.getName()).thenReturn("Player");
-
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.getName()).thenReturn("NotPlayer");
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
-
-		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), any(Player.class), anyInt());
+		verify(combatManager, times(0)).onTargetHitsplat(any(Player.class), anyInt());
 	}
 
 	@Test
@@ -106,10 +88,9 @@ public class HitsplatAppliedEventTest extends PluginMocks
 
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(localPlayer.getName()).thenReturn("NotPlayer");
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.SKULL);
 
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(1)).onTargetHitsplat(player, localPlayer, 0);
+		verify(combatManager, times(1)).onTargetHitsplat(player, 0);
 	}
 
 	@Test
@@ -121,6 +102,6 @@ public class HitsplatAppliedEventTest extends PluginMocks
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
 
 		eventBus.post(hitsplatApplied);
-		verify(combatManager, times(0)).onTargetHitsplat(player, localPlayer, 0);
+		verify(combatManager, times(0)).onTargetHitsplat(player, 0);
 	}
 }

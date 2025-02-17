@@ -47,7 +47,7 @@ public class LocationManager
 	private final TimerManager timerManager;
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
-	private final static int playerRadius = 14;
+	private final static int playerRadius = 13;
 
 	/**
 	 * The constructor for a {@link LocationManager} object.

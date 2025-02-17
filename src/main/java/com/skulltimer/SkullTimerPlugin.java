@@ -98,7 +98,7 @@ public class SkullTimerPlugin extends Plugin
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
-		combatManager = new CombatManager(client, config, timerManager);
+		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);
 
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
@@ -181,8 +181,9 @@ public class SkullTimerPlugin extends Plugin
 			hasHitSplatOccurred = false;
 		}
 
+		statusManager.checkSkulledStatus(gameTickCounter);
+
 		gameTickCounter++;
-		statusManager.checkSkulledStatus();
 
 		SkulledTimer skulledTimer = timerManager.getTimer();
 		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
@@ -298,9 +299,9 @@ public class SkullTimerPlugin extends Plugin
 			hasHitSplatOccurred = true;
 		}
 		//if the player attacks a player in the wilderness, and they have a skull icon
-		else if (hitsplatApplied.getHitsplat().isMine() && localPlayer.getSkullIcon() != SkullIcon.NONE)
+		else if (hitsplatApplied.getHitsplat().isMine())
 		{
-			combatManager.onTargetHitsplat(playerHit, localPlayer, gameTickCounter);
+			combatManager.onTargetHitsplat(playerHit, gameTickCounter);
 		}
 	}
 

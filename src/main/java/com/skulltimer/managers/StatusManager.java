@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import javax.inject.Inject;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -44,6 +45,8 @@ public class StatusManager
 	private final Client client;
 	private boolean doesPlayerHaveSkullIcon;
 	private Instant skullIconStartTime;
+	@Getter
+	private int skullIconTickStartTime;
 	private final DateTimeFormatter dateTimeFormatter;
 	@Setter
 	private Instant timerEndTime;
@@ -63,15 +66,16 @@ public class StatusManager
 	 * A method used to check the players current status at the moment.
 	 * @return {@code true} if the player does have a skull icon, otherwise {@code false}.
 	 */
-	private boolean doesPlayerCurrentlyHaveSkullIcon()
+	public boolean doesPlayerCurrentlyHaveSkullIcon()
 	{
 		return client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE;
 	}
 
 	/**
 	 * A method used to keep track and log when a skull icon has started or expired.
+	 * @param currentTick The {@link Integer} value representing the current tick number.
 	 */
-	public void checkSkulledStatus()
+	public void checkSkulledStatus(int currentTick)
 	{
 		//check if there has been a change in status.
 		if (doesPlayerHaveSkullIcon == doesPlayerCurrentlyHaveSkullIcon())
@@ -84,7 +88,8 @@ public class StatusManager
 		if (doesPlayerCurrentlyHaveSkullIcon())
 		{
 			skullIconStartTime = now;
-			log.debug("Skull icon has started: Start time: {}.", dateTimeFormatter.format(skullIconStartTime));
+			skullIconTickStartTime = currentTick;
+			log.debug("Skull icon has started: Start time: {} (tick number: {}).", dateTimeFormatter.format(skullIconStartTime), currentTick);
 			doesPlayerHaveSkullIcon = true;
 		}
 		else if (skullIconStartTime != null)
@@ -93,25 +98,29 @@ public class StatusManager
 			long skulledDurationMinutes = skulledDuration.toMinutes();
 			long skulledDurationSeconds = skulledDuration.toSeconds() % 60;
 
-			log.debug("Skull icon has expired. Start time: {}. End time: {}. Duration {} minutes and {} seconds.",
+			log.debug("Skull icon has expired. Start time: {}. End time: {}. Duration {} minutes and {} seconds.(tick number: {}).",
 				dateTimeFormatter.format(skullIconStartTime),
 				dateTimeFormatter.format(now),
 				skulledDurationMinutes,
-				skulledDurationSeconds);
+				skulledDurationSeconds,
+				currentTick);
 
 			if (timerEndTime != null)
 			{
 				Duration timerExpiredDuration = Duration.between(timerEndTime, now);
 				long timerExpiredMinutes = timerExpiredDuration.toMinutes();
 				long timerExpiredSeconds = timerExpiredDuration.toSeconds() % 60;
+				int tickDuration = currentTick - skullIconTickStartTime;
 
-				log.debug("Previous timer expired at {} ({} minutes and {} seconds before skulled status).",
+				log.debug("Previous timer expired at {} ({} minutes and {} seconds before skulled status. Tick duration: {}).",
 					dateTimeFormatter.format(timerEndTime),
 					timerExpiredMinutes,
-					timerExpiredSeconds);
+					timerExpiredSeconds,
+					tickDuration);
 				timerEndTime = null;
 			}
 
+			skullIconTickStartTime = 0;
 			doesPlayerHaveSkullIcon = false;
 		} else {
 			log.warn("Skull icon expired, but start time was null.");

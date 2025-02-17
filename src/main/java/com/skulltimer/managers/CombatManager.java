@@ -31,6 +31,7 @@ import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.equipment.AttackType;
+import com.skulltimer.enums.equipment.WeaponHitDelay;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,6 +45,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GraphicID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
+import net.runelite.client.callback.ClientThread;
 
 /**
  * An object that is used to manage combat scenarios to determine if a timer is required to be started.
@@ -54,8 +56,12 @@ public class CombatManager
 	@Inject
 	private final Client client;
 	@Inject
+	private final ClientThread clientThread;
+	@Inject
 	private final SkullTimerConfig config;
 	private final TimerManager timerManager;
+	private final StatusManager statusManager;
+	private final EquipmentManager equipmentManager;
 	@Getter
 	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
@@ -65,14 +71,21 @@ public class CombatManager
 	/**
 	 * The constructor for a {@link CombatManager} object.
 	 * @param client Runelite's {@link Client} object.
+	 * @param clientThread Runelite's {@link ClientThread} object.
 	 * @param config The configuration file for the {@link SkullTimerPlugin}.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
+	 * @param statusManager The manager used to manage the plugins interaction with the player characters status.
+	 * @param equipmentManager The manager used to manage events related to the players equipment.
+	 *
 	 */
-	public CombatManager(Client client, SkullTimerConfig config, TimerManager timerManager)
+	public CombatManager(Client client, ClientThread clientThread, SkullTimerConfig config, TimerManager timerManager, StatusManager statusManager, EquipmentManager equipmentManager)
 	{
 		this.client = client;
+		this.clientThread = clientThread;
 		this.config = config;
 		this.timerManager = timerManager;
+		this.statusManager = statusManager;
+		this.equipmentManager = equipmentManager;
 		this.combatRecords = new HashMap<>();
 		this.interactionRecords = new HashSet<>();
 		this.attackRecords = new HashMap<>();
@@ -150,55 +163,119 @@ public class CombatManager
 	 * </ol>
 	 * </p>
 	 * @param player The {@link Player} who the hitsplat has been applied to.
-	 * @param localPlayer The {@link Player} who inflected the hitsplat.
 	 * @param currentTick The {@link Integer} value representing the current tick number.
 	 */
-	public void onTargetHitsplat(Player player, Player localPlayer, int currentTick)
+	public void onTargetHitsplat(Player player, int currentTick)
 	{
 		if (player.getName() == null || player.getName().isEmpty()){
 			return;
 		}
 
-		if (!combatRecords.containsKey(player.getName())) {
-			log.debug("Target record created for player {}.", player.getName());
+		String playerName = player.getName();
+
+		if (!combatRecords.containsKey(playerName)) {
+			log.debug("Target record created for player {}.", playerName);
 			CombatInteraction combatInteraction = new CombatInteraction();
 			combatRecords.put(player.getName(), combatInteraction);
 			addTimerCheck();
 			return;
 		}
 
-		CombatInteraction combatInteraction = combatRecords.get(player.getName());
+		CombatInteraction combatInteraction = combatRecords.get(playerName);
 
 		//if the player has died at some point, even if they had retaliated, start a new timer
 		if (combatInteraction.getCombatStatus() == CombatStatus.DEAD){
-			log.debug("Player {} was previously killed. Starting timer.", player.getName());
+			log.debug("Player {} was previously killed. Starting timer.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
 			addTimerCheck();
 		}
 
 		//if the player has logged out at some point - the player can't attack them unless they retaliated
 		else if (combatInteraction.getCombatStatus() == CombatStatus.LOGGED_OUT) {
-			log.debug("Player {} was previously logged out. Starting timer.", player.getName());
+			log.debug("Player {} was previously logged out. Starting timer.", playerName);
 			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
 			addTimerCheck();
 		}
 
-		//todo - uncertain/inactive
-		//if the player has moved away from the player, set the status to unknown, as the timer will now possibly be out of sync
-		else if (combatInteraction.getCombatStatus() == CombatStatus.UNCERTAIN && localPlayer.getSkullIcon() != SkullIcon.NONE) {
-			log.debug("Player {} is unknown but {} has skull. Starting timer.", player.getName(), localPlayer.getName());
-			addTimerCheck();
+		//if the player has their status as uncertain or inactive, perform a further check.
+		else if (combatInteraction.getCombatStatus() == CombatStatus.UNCERTAIN || combatInteraction.getCombatStatus() == CombatStatus.INACTIVE) {
+			clientThread.invokeAtTickEnd(() -> onUnknownOrInactiveStatus(playerName, combatInteraction, currentTick));
 		}
 
 		//if the target has retaliated at any point during the fight, then a new timer will not be started
 		else if (!combatInteraction.hasRetaliated()) {
-			log.debug("Player {} has not retaliated. Starting timer.", player.getName());
+			log.debug("Player {} has not retaliated. Starting timer.", playerName);
 			addTimerCheck();
 		}
-
 		else
 		{
-			log.debug("Timer will not be started. {}'s combat status: {}.", player.getName(), combatInteraction.getCombatStatus());
+			log.debug("Timer will not be started. {}'s combat status: {}.", playerName, combatInteraction.getCombatStatus());
+		}
+	}
+
+	/**
+	 * A method to try to identify what a players combat status should be set to if possible.
+	 * If the local player doesn't have a skull after attacking the target player, the player's combat status is set to retaliated.
+	 * If the local player does have a skull which started within the previous possible attack range, the players combat status is set to attacked and a timer is started.
+	 * Otherwise, it is difficult to verify the players remaining time and therefore the timer may be inaccurate.
+	 * @param targetPlayerName The name of the target player.
+	 * @param combatInteraction The combat record associated with the player.
+	 * @param currentTick The current tick number.
+	 */
+	private void onUnknownOrInactiveStatus(String targetPlayerName, CombatInteraction combatInteraction, int currentTick)
+	{
+		if (combatInteraction == null || currentTick == 0)
+		{
+			return;
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+
+		WeaponHitDelay weaponHitDelay = equipmentManager.getWeaponHitDelay(localPlayer);
+
+		if (weaponHitDelay == null)
+		{
+			return;
+		}
+
+		int worstCaseDistance = 10;
+		int worstCaseHitDelay = weaponHitDelay.calculateHitDelay(worstCaseDistance);
+		int skullStatusStartTime = statusManager.getSkullIconTickStartTime();
+
+		//checks to ensure that the hit occurred within the longest reasonable time a hit could have occurred.
+		boolean isStartTimeWithinWorstCaseHitDelay = (skullStatusStartTime >= (currentTick - worstCaseHitDelay - 1)
+			&& skullStatusStartTime <= currentTick);
+
+		log.debug("Player has skull icon: {}. Is within worse case hit delay: {}. Worst case hit delay: {}. skullStatusStartTime: {}. Current tick: {}.",
+			statusManager.doesPlayerCurrentlyHaveSkullIcon(), isStartTimeWithinWorstCaseHitDelay, worstCaseHitDelay, skullStatusStartTime, currentTick);
+
+		//if player does not have skulled status - the player be considered retaliated - do not start timer.
+		if (!statusManager.doesPlayerCurrentlyHaveSkullIcon())
+		{
+			log.debug("Player does not have skull. Setting {} status to retaliated.", targetPlayerName);
+			combatInteraction.setCombatStatus(CombatStatus.RETALIATED);
+		}
+		//if the player does have skull status that started within worstCaseHitDelay - the player should be set to 'attacked' and timer started.
+		else if (isStartTimeWithinWorstCaseHitDelay)
+		{
+			log.debug("Skull status started within expected time. Setting {} status to attacked.", targetPlayerName);
+			combatInteraction.setCombatStatus(CombatStatus.ATTACKED);
+			addTimerCheck();
+		}
+		//if the player has a skull, but the range is before then it's difficult to verify.
+		else
+		{
+			//the previous combat status is used to determine what has the highest likelihood of being correct.
+			CombatStatus combatStatus = combatInteraction.getCombatStatus();
+			if (combatStatus == CombatStatus.INACTIVE) 
+			{
+				log.debug("Cannot verify {}'s status. Not starting timer but remaining inactive.", targetPlayerName);
+			}
+			else if (combatStatus == CombatStatus.UNCERTAIN)
+			{
+				log.debug("Cannot verify {}'s status. Starting timer but remaining uncertain.", targetPlayerName);
+				addTimerCheck();
+			}
 		}
 	}
 
@@ -261,7 +338,7 @@ public class CombatManager
 	 * @param currentTick The number of the current tick.
 	 * @return A {@link HashMap} containing all {@link ExpectedHit} expected within the {@code currentTick} or {@code currentTick - 1}.
 	 */
-	public HashMap<Integer, Set<ExpectedHit>> getExpectedHits(int currentTick)
+	private HashMap<Integer, Set<ExpectedHit>> getExpectedHits(int currentTick)
 	{
 		return attackRecords.entrySet().stream()
 			.filter(entry -> entry.getKey() == currentTick || entry.getKey() == currentTick - 1)

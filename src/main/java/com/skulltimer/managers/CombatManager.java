@@ -53,15 +53,13 @@ import net.runelite.client.callback.ClientThread;
 @Slf4j
 public class CombatManager
 {
-	@Inject
 	private final Client client;
-	@Inject
 	private final ClientThread clientThread;
-	@Inject
 	private final SkullTimerConfig config;
 	private final TimerManager timerManager;
 	private final StatusManager statusManager;
 	private final EquipmentManager equipmentManager;
+
 	@Getter
 	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
@@ -78,6 +76,7 @@ public class CombatManager
 	 * @param equipmentManager The manager used to manage events related to the players equipment.
 	 *
 	 */
+	@Inject
 	public CombatManager(Client client, ClientThread clientThread, SkullTimerConfig config, TimerManager timerManager, StatusManager statusManager, EquipmentManager equipmentManager)
 	{
 		this.client = client;

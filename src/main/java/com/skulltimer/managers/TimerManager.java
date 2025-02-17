@@ -40,15 +40,12 @@ import com.skulltimer.SkullTimerPlugin;
 @Slf4j
 public class TimerManager
 {
-	@Inject
 	private final SkullTimerConfig config;
-	@Inject
 	private final InfoBoxManager infoBoxManager;
-	@Inject
 	private final ItemManager itemManager;
-	@Inject
 	private final SkullTimerPlugin skullTimerPlugin;
 	private final StatusManager statusManager;
+
 	@Getter
 	private SkulledTimer timer;
 
@@ -61,6 +58,7 @@ public class TimerManager
 	 * @param statusManager A manager for tracking the players skulled duration.
 	 *
 	 */
+	@Inject
 	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager)
 	{
 		this.skullTimerPlugin = skullTimerPlugin;

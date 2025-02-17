@@ -41,20 +41,22 @@ import net.runelite.api.SkullIcon;
 @Slf4j
 public class StatusManager
 {
-	@Inject
 	private final Client client;
 	private boolean doesPlayerHaveSkullIcon;
 	private Instant skullIconStartTime;
+
 	@Getter
 	private int skullIconTickStartTime;
-	private final DateTimeFormatter dateTimeFormatter;
 	@Setter
 	private Instant timerEndTime;
+
+	private final DateTimeFormatter dateTimeFormatter;
 
 	/**
 	 * The constructor for a {@link StatusManager} object.
 	 * @param client Runelite's {@link Client} object.
 	 */
+	@Inject
 	public StatusManager(Client client)
 	{
 		this.client = client;

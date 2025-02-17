@@ -42,9 +42,9 @@ import net.runelite.api.coords.WorldPoint;
 @Slf4j
 public class LocationManager
 {
-	@Inject
 	private final Client client;
 	private final TimerManager timerManager;
+
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
 	private final static int playerRadius = 13;
@@ -54,6 +54,7 @@ public class LocationManager
 	 * @param client Runelite's {@link Client} object.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 */
+	@Inject
 	public LocationManager(Client client, TimerManager timerManager)
 	{
 		this.client = client;

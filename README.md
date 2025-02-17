@@ -58,7 +58,7 @@ If you have encountered any bugs, please create an issue [here](https://github.c
 
 ## Changelog
 <details>
-<summary>Version 2.0:</summary> 
+<summary>Version 2.0 (17/02/2025):</summary> 
 Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>
 Added timer for other skulled status sources, including: <br>
 - Attacking another player unprovoked. <br>

@@ -41,20 +41,20 @@ This will change the colour of the text on the timer. When the timer has 30 seco
 </details>
 
 <details>
-<summary>Enable PVP timer:</summary>
+<summary>Enable PvP timer:</summary>
   
 ![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/settings2.PNG) <br>
-If checked, whenever you engage in a PVP encounter where you receive a skull icon, a timer will start. This timer may not be 100% accurate in some scenarios.
+If checked, whenever you engage in a PvP encounter where you receive a skull icon, a timer will start. This timer may not be 100% accurate in some scenarios.
 </details>
 
 ## Feedback
 
-If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relevent details. Any feedback or feature requests are also welcome!
+If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relavent details. Any feedback or feature requests are also welcome!
 
 ## Credits
 
 - [juusokarjanlahti](https://github.com/juusokarjanlahti) - Original equipment timer feature, development support (including code readability and feature suggestions/improvements) and improved README documentation.
-- [Old School Runescape Wiki](https://oldschool.runescape.wiki/) - [Source](https://oldschool.runescape.wiki/w/File:Skull_(status)_icon.png) of the image used for the plugins icon and a useful source of information which aided the develop this plugin (primarily [Skull (status)](https://oldschool.runescape.wiki/w/Skull_(status)) and [weapons](https://oldschool.runescape.wiki/w/Weapons) pages).
+- [Old School Runescape Wiki](https://oldschool.runescape.wiki/) - [Source](https://oldschool.runescape.wiki/w/File:Skull_(status)_icon.png) of the image used for the plugin's icon and a useful source of information which aided the development of this plugin (primarily [Skull (status)](https://oldschool.runescape.wiki/w/Skull_(status)) and [weapons](https://oldschool.runescape.wiki/w/Weapons) pages).
 
 ## Changelog
 <details>
@@ -63,7 +63,7 @@ Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>
 Added timer for other skulled status sources, including: <br>
 - Attacking another player unprovoked. <br>
 - Entering the Abyss without an Abyssal bracelet. <br>
-- (Un)equipping items that provide a skull icon such as the Amulet of Avarice and Cape of skulls. <br>
+- Unequipping/equipping items that provide a skull icon such as the Amulet of Avarice and Cape of skulls. <br>
 Added new configuration options: <br>
 - Enable pvp timer.
 </details>

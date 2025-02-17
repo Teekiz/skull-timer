@@ -2,7 +2,7 @@
 
 
  ![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/timer.png) <br>
-This plugin tracks the players skull duration and status. 
+This plugin tracks the player's skull duration and status. 
 
 This is particularly useful for ironmen and lower-level main accounts aiming to maximize drop rates in Revenant Caves or for tracking the duration of the skull status in PvP scenarios.
 
@@ -44,12 +44,12 @@ This will change the colour of the text on the timer. When the timer has 30 seco
 <summary>Enable PvP timer:</summary>
   
 ![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/settings2.PNG) <br>
-If checked, whenever you engage in a PvP encounter where you receive a skull icon, a timer will start. This timer may not be 100% accurate in some scenarios.
+If enabled, a timer will start whenever you engage in a PvP encounter and receive a skull icon. Note: This timer may not be 100% accurate in all scenarios.
 </details>
 
 ## Feedback
 
-If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relavent details. Any feedback or feature requests are also welcome!
+If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relevant details. Any feedback or feature requests are also welcome!
 
 ## Credits
 
@@ -63,9 +63,9 @@ Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>
 Added timer for other skulled status sources, including: <br>
 - Attacking another player unprovoked. <br>
 - Entering the Abyss without an Abyssal bracelet. <br>
-- Unequipping/equipping items that provide a skull icon such as the Amulet of Avarice and Cape of skulls. <br>
-Added new configuration options: <br>
-- Enable pvp timer.
+- Equipping or unequipping items that provide a skull icon such as the Amulet of Avarice and the Cape of Skulls. <br>
+Added new configuration option: <br>
+- Enable PvP timer.
 </details>
 
 <details>

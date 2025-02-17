@@ -1,7 +1,7 @@
 # Runelite Skulled Timer Plugin ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/emblem-trader-skull-timer) ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/emblem-trader-skull-timer)
 
 
-
+ ![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/timer.png) <br>
 This plugin tracks the players skull duration and status. 
 
 This is particularly useful for ironmen and lower-level main accounts aiming to maximize drop rates in Revenant Caves or for tracking the duration of the skull status in PvP scenarios.
@@ -9,19 +9,17 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 ## Table of contents
 1. [Features](#features)
 2. [How it works](#how-it-works)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Help and discussion](#help-and-discussion)
-6. [Credits](#credits)
-7. [Changelog](#changelog)
+3. [Configuration](#configuration)
+4. [Feedback](#feedback)
+5. [Credits](#credits)
+6. [Changelog](#changelog)
 
 ## Features
-
 - Real-time Skull Status Timer
 - PvP Combat Detection
 - Equipment Monitoring
-- Configurable Alerts
 - Abyss Teleport Handling
+- Emblem Trader Interactions
 
 ## How it works
 
@@ -33,35 +31,25 @@ This is particularly useful for ironmen and lower-level main accounts aiming to 
 
 4. Expiration & Removal: The timer is removed when the skull expires or the player dies.
 
-## Installation
-
-- Download and install RuneLite from the official website https://runelite.net.
-
-- Launch RuneLite.
-
-- Navigate to Plugin Hub by clicking the Wrench icon on the top right Runelite window.
-
-- Click the Plugin-Hub button on the right side near the top.
-
-- Search for the plugin.
-
-- Click Install.
-
 ## Configuration
 
 <details>
 <summary>Text and Warning Text Colours:</summary>
-This will change the colour of the text on the timer. When the timer has 30 seconds remaining or less, it will use the warning text colour.
+  
+![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/settings1.png) <br>
+This will change the colour of the text on the timer. When the timer has 30 seconds remaining or less, it will use the warning text colour. 
 </details>
 
 <details>
 <summary>Enable PVP timer:</summary>
+  
+![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/settings2.PNG) <br>
 If checked, whenever you engage in a PVP encounter where you receive a skull icon, a timer will start. This timer may not be 100% accurate in some scenarios.
 </details>
 
-## Help and discussion
+## Feedback
 
-If you have suggestions, improvements, or have encountered a bug relating to the plugin, please [create an issue](https://github.com/Teekiz/skull-timer/issues/new) with the relevant details.
+If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relevent details. Any feedback or feature requests are also welcome!
 
 ## Credits
 
@@ -70,7 +58,7 @@ If you have suggestions, improvements, or have encountered a bug relating to the
 
 ## Changelog
 <details>
-<summary>2.0:</summary> 
+<summary>Version 2.0:</summary> 
 Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>
 Added timer for other skulled status sources, including: <br>
 - Attacking another player unprovoked. <br>
@@ -81,13 +69,13 @@ Added new configuration options: <br>
 </details>
 
 <details>
-<summary>1.1:</summary>
+<summary>Version 1.1 (09/10/2024):</summary>
 Compatibility update. <br>
 Minor code and logging changes.
 </details> 
 
 <details>
-<summary>1.0:</summary>
+<summary>Version 1.0 (25/07/2023):</summary>
 Plugin release. <br>
 Added skull timer for when the player interacts with the emblem trader and receives a skull icon. <br>
 Added new configuration options: <br>

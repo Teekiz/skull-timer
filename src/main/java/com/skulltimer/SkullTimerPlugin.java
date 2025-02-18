@@ -80,23 +80,26 @@ public class SkullTimerPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
-	@Inject
+
 	private StatusManager statusManager;
-	@Inject
 	private TimerManager timerManager;
-	@Inject
 	private LocationManager locationManager;
-	@Inject
 	private EquipmentManager equipmentManager;
-	@Inject
 	private CombatManager combatManager;
 
 	private int gameTickCounter;
 	private boolean hasHitSplatOccurred;
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
+		// Initialize the managers and set up the initial state of the plugin
+		statusManager = new StatusManager(client);
+		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
+		locationManager = new LocationManager(client, timerManager);
+		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
+		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);
+
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
 
@@ -105,7 +108,7 @@ public class SkullTimerPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		// Remove the timer, save duration remaining
 		timerManager.removeTimer(timerManager.getTimer() != null);

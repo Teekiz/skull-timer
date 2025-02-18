@@ -28,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import javax.inject.Inject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,19 +43,16 @@ public class StatusManager
 	private final Client client;
 	private boolean doesPlayerHaveSkullIcon;
 	private Instant skullIconStartTime;
-
 	@Getter
 	private int skullIconTickStartTime;
 	@Setter
 	private Instant timerEndTime;
-
 	private final DateTimeFormatter dateTimeFormatter;
 
 	/**
 	 * The constructor for a {@link StatusManager} object.
 	 * @param client Runelite's {@link Client} object.
 	 */
-	@Inject
 	public StatusManager(Client client)
 	{
 		this.client = client;

@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
@@ -57,7 +56,6 @@ public class EquipmentManager
 	private final Client client;
 	private final ItemManager itemManager;
 	private final TimerManager timerManager;
-
 	/** A {@link HashMap} value that is changed when a player equips an item which provides a skull (e.g. amulet of avarice). */
 	private final HashMap<Integer, Item> equippedItems;
 
@@ -67,7 +65,6 @@ public class EquipmentManager
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
 	 * @param itemManager Runelite's {@link ItemManager} object.
 	 */
-	@Inject
 	public EquipmentManager(Client client, TimerManager timerManager, ItemManager itemManager)
 	{
 		this.client = client;

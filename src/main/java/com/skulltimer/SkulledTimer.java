@@ -32,7 +32,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ItemID;
 import net.runelite.client.game.ItemManager;
@@ -41,11 +40,7 @@ import net.runelite.client.ui.overlay.infobox.Timer;
 @Slf4j
 public class SkulledTimer extends Timer
 {
-	@Inject
-	ItemManager itemManager;
-	@Inject
-	SkullTimerConfig config;
-
+	private final ItemManager itemManager;
 	private final Color textColour;
 	private final Color warningColour;
 
@@ -53,14 +48,13 @@ public class SkulledTimer extends Timer
 	{
 		super(duration.toMillis(), ChronoUnit.MILLIS, itemManager.getImage(ItemID.SKULL), plugin);
 		this.itemManager = itemManager;
-		this.config = skullTimerConfig;
 
 		super.setImage(getTimerIcon());
 
 		String tooltipText = "Time left until your character becomes unskulled.";
 
-		this.textColour = config.textColour();
-		this.warningColour = config.warningTextColour();
+		this.textColour = skullTimerConfig.textColour();
+		this.warningColour = skullTimerConfig.warningTextColour();
 		this.setTooltip(tooltipText);
 
 	}

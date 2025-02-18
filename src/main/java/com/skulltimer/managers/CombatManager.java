@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import com.skulltimer.SkulledTimer;
@@ -59,7 +58,6 @@ public class CombatManager
 	private final TimerManager timerManager;
 	private final StatusManager statusManager;
 	private final EquipmentManager equipmentManager;
-
 	@Getter
 	private final HashMap<String, CombatInteraction> combatRecords;
 	@Getter
@@ -76,7 +74,6 @@ public class CombatManager
 	 * @param equipmentManager The manager used to manage events related to the players equipment.
 	 *
 	 */
-	@Inject
 	public CombatManager(Client client, ClientThread clientThread, SkullTimerConfig config, TimerManager timerManager, StatusManager statusManager, EquipmentManager equipmentManager)
 	{
 		this.client = client;

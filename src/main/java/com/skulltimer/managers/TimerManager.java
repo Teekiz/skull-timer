@@ -29,7 +29,6 @@ import com.skulltimer.SkulledTimer;
 import java.time.Duration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import javax.inject.Inject;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import com.skulltimer.SkullTimerPlugin;
@@ -45,7 +44,6 @@ public class TimerManager
 	private final ItemManager itemManager;
 	private final SkullTimerPlugin skullTimerPlugin;
 	private final StatusManager statusManager;
-
 	@Getter
 	private SkulledTimer timer;
 
@@ -58,7 +56,6 @@ public class TimerManager
 	 * @param statusManager A manager for tracking the players skulled duration.
 	 *
 	 */
-	@Inject
 	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager)
 	{
 		this.skullTimerPlugin = skullTimerPlugin;

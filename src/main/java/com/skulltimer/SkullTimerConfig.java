@@ -31,7 +31,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 
-@ConfigGroup("skulledtimer")
+@ConfigGroup("Skull Timer")
 public interface SkullTimerConfig extends Config
 {
 	@ConfigSection(

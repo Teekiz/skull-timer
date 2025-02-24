@@ -34,7 +34,7 @@ public class ConfigChangedEventTest extends PluginMocks
 	@Test
 	public void timerIsNotNull()
 	{
-		when(configChanged.getGroup()).thenReturn("skulledTimer");
+		when(configChanged.getGroup()).thenReturn("Skull Timer");
 		when(configChanged.getKey()).thenReturn("warningTextColour");
 		when(timerManager.getTimer()).thenReturn(skulledTimer);
 		when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
@@ -45,7 +45,7 @@ public class ConfigChangedEventTest extends PluginMocks
 	@Test
 	public void timerIsNotNull_NotLoggedIn()
 	{
-		when(configChanged.getGroup()).thenReturn("skulledTimer");
+		when(configChanged.getGroup()).thenReturn("Skull Timer");
 		when(configChanged.getKey()).thenReturn("warningTextColour");
 		when(timerManager.getTimer()).thenReturn(skulledTimer);
 		when(client.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
@@ -64,7 +64,7 @@ public class ConfigChangedEventTest extends PluginMocks
 	@Test
 	public void timerDurationSaved()
 	{
-		when(configChanged.getGroup()).thenReturn("skulledTimer");
+		when(configChanged.getGroup()).thenReturn("Skull Timer");
 		when(configChanged.getKey()).thenReturn("skullDuration");
 		eventBus.post(configChanged);
 		verify(timerManager, times(0)).addTimer(any(Duration.class));

@@ -430,7 +430,7 @@ public class SkullTimerPlugin extends Plugin
 	{
 		//config options that should not affect the timer (other plugin configurations or duration for the skull)
 		if (configChanged.getGroup() == null || configChanged.getKey() == null ||
-			!configChanged.getGroup().equalsIgnoreCase("skulledtimer") || configChanged.getKey().equalsIgnoreCase("skullDuration"))
+			!configChanged.getGroup().equalsIgnoreCase("Skull Timer") || configChanged.getKey().equalsIgnoreCase("skullDuration"))
 		{
 			return;
 		}

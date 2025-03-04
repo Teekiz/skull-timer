@@ -1,0 +1,28 @@
+name: Run Unit Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Grant execute permissions to Gradle
+        run: chmod +x gradlew
+
+      - name: Install dependencies
+        run: ./gradlew build --no-daemon
+
+      - name: Run tests
+        run: ./gradlew test --info

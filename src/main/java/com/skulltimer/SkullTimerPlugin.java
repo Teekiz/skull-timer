@@ -54,6 +54,7 @@ import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.events.PlayerDespawned;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -80,6 +81,8 @@ public class SkullTimerPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
+	@Inject
+	private Notifier notifier;
 
 	private StatusManager statusManager;
 	private TimerManager timerManager;
@@ -95,7 +98,7 @@ public class SkullTimerPlugin extends Plugin
 	{
 		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
-		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
+		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager, notifier);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
 		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);

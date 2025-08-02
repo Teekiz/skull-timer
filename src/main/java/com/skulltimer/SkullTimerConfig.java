@@ -86,4 +86,27 @@ public interface SkullTimerConfig extends Config
 		section = experimental
 	)
 	default boolean pvpToggle() {return true;}
+
+	@ConfigSection(
+		position = 2,
+		name = "Notification Settings",
+		description = "Sets when you should be notified upon certain conditions being met."
+	)
+	String notifications = "notifications";
+
+	@ConfigItem(
+		keyName = "expirationSoonNotification",
+		name="One Minute Remaining Notification",
+		description = "Toggles whether you should receive a notification when the skull timer duration reaches one minute.",
+		section = notifications
+	)
+	default boolean expirationSoonNotification() {return false;}
+
+	@ConfigItem(
+		keyName = "expiredNotification",
+		name="Skull Expired Notification",
+		description = "Toggles whether you should receive a notification when the skull timer expires.",
+		section = notifications
+	)
+	default boolean expiredNotification() {return false;}
 }

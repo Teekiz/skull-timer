@@ -4,7 +4,6 @@ import com.skulltimer.mocks.PluginMocks;
 import java.time.Duration;
 import java.time.Instant;
 import net.runelite.api.Player;
-import net.runelite.api.SkullIcon;
 import net.runelite.api.events.GameTick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,10 +32,10 @@ public class GameTickEventTest extends PluginMocks
 	}
 
 	@Test
-	public void timerExpiresAfterCurrentTime()
+	public void timerExpiresAtFutureTime_PlayerHasSkullIcon()
 	{
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().plus(Duration.ofMinutes(20)));
+		when(statusManager.doesPlayerCurrentlyHaveSkullIcon()).thenReturn(true);
 		eventBus.post(gameTick);
 		verify(timerManager, times(0)).removeTimer(anyBoolean());
 	}
@@ -44,9 +43,8 @@ public class GameTickEventTest extends PluginMocks
 	@Test
 	public void timerHasExpired()
 	{
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.SKULL);
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().minusSeconds(1));
+		when(statusManager.doesPlayerCurrentlyHaveSkullIcon()).thenReturn(false);
 		eventBus.post(gameTick);
 		verify(timerManager, times(1)).removeTimer(false);
 	}
@@ -56,8 +54,7 @@ public class GameTickEventTest extends PluginMocks
 	{
 		when(timerManager.getTimer()).thenReturn(skulledTimer);
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().plusSeconds(300));
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
+		when(statusManager.doesPlayerCurrentlyHaveSkullIcon()).thenReturn(false);
 		eventBus.post(gameTick);
 		verify(timerManager, times(1)).removeTimer(false);
 	}

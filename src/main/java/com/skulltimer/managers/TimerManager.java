@@ -136,18 +136,18 @@ public class TimerManager
 		return true;
 	}
 
-	//todo - create method to check if notification has been met.
-	//todo - write unit test.
-
 	/**
 	 * A method to check if a notification should be sent.
 	 * @param notification The type of {@link Notifications} that should be sent.
 	 */
-	private void handleNotifications(Notifications notification)
+	public void handleNotifications(Notifications notification)
 	{
 		if ((notification.equals(Notifications.EXPIRING_SOON) && config.expirationSoonNotification())
 			|| notification.equals(Notifications.EXPIRED) && config.expiredNotification()){
+			log.debug("Pushing notification as {}", notification.getMessage());
 			notifier.notify(notification.getMessage());
+			return;
 		}
+		log.debug("Not pushing notification '{}' as notification settings have not been enabled.", notification.getMessage());
 	}
 }

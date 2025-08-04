@@ -26,6 +26,7 @@ package com.skulltimer;
 import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
+import com.skulltimer.enums.Notifications;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.enums.equipment.ExcludedAnimations;
@@ -189,19 +190,24 @@ public class SkullTimerPlugin extends Plugin
 		gameTickCounter++;
 
 		SkulledTimer skulledTimer = timerManager.getTimer();
-		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
 
 		if (skulledTimer == null)
 		{
 			return;
 		}
 
+		if (skulledTimer.getRemainingTime().getSeconds() == 60)
+		{
+			timerManager.handleNotifications(Notifications.EXPIRING_SOON);
+		}
+
 		//if the player does not have a skull icon or the timer has expired
 		if (Instant.now().isAfter(skulledTimer.getEndTime()))
 		{
-			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+			log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+			timerManager.handleNotifications(Notifications.EXPIRED);
 		}
-		else if (playerHasNoSkullIcon)
+		else if (!statusManager.doesPlayerCurrentlyHaveSkullIcon())
 		{
 			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
 		}

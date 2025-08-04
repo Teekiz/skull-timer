@@ -26,11 +26,9 @@ package com.skulltimer.managers;
 
 import com.skulltimer.SkullTimerConfig;
 import com.skulltimer.SkulledTimer;
-import com.skulltimer.enums.Notifications;
 import java.time.Duration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.Notifier;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import com.skulltimer.SkullTimerPlugin;
@@ -46,7 +44,6 @@ public class TimerManager
 	private final ItemManager itemManager;
 	private final SkullTimerPlugin skullTimerPlugin;
 	private final StatusManager statusManager;
-	private final Notifier notifier;
 	@Getter
 	private SkulledTimer timer;
 
@@ -59,14 +56,13 @@ public class TimerManager
 	 * @param statusManager A manager for tracking the players skulled duration.
 	 *
 	 */
-	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager, Notifier notifier)
+	public TimerManager(SkullTimerPlugin skullTimerPlugin, SkullTimerConfig config, InfoBoxManager infoBoxManager, ItemManager itemManager, StatusManager statusManager)
 	{
 		this.skullTimerPlugin = skullTimerPlugin;
 		this.config = config;
 		this.infoBoxManager = infoBoxManager;
 		this.itemManager = itemManager;
 		this.statusManager = statusManager;
-		this.notifier = notifier;
 	}
 
 	/**
@@ -134,20 +130,5 @@ public class TimerManager
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * A method to check if a notification should be sent.
-	 * @param notification The type of {@link Notifications} that should be sent.
-	 */
-	public void handleNotifications(Notifications notification)
-	{
-		if ((notification.equals(Notifications.EXPIRING_SOON) && config.expirationSoonNotification())
-			|| notification.equals(Notifications.EXPIRED) && config.expiredNotification()){
-			log.debug("Pushing notification as {}", notification.getMessage());
-			notifier.notify(notification.getMessage());
-			return;
-		}
-		log.debug("Not pushing notification '{}' as notification settings have not been enabled.", notification.getMessage());
 	}
 }

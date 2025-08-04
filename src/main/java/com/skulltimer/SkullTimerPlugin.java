@@ -99,7 +99,7 @@ public class SkullTimerPlugin extends Plugin
 	{
 		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
-		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager, notifier);
+		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
 		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
 		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);
@@ -198,14 +198,14 @@ public class SkullTimerPlugin extends Plugin
 
 		if (skulledTimer.getRemainingTime().getSeconds() == 60)
 		{
-			timerManager.handleNotifications(Notifications.EXPIRING_SOON);
+			notifier.notify(config.expirationSoonNotification(), Notifications.EXPIRING_SOON.getMessage());
 		}
 
 		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime()))
+		if (Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime()) || skulledTimer.getRemainingTime().getSeconds() == 0)
 		{
+			notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
 			log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
-			timerManager.handleNotifications(Notifications.EXPIRED);
 		}
 		else if (!statusManager.doesPlayerCurrentlyHaveSkullIcon())
 		{

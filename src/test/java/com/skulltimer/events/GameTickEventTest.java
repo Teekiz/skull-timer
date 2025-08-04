@@ -1,5 +1,6 @@
 package com.skulltimer.events;
 
+import com.skulltimer.enums.Notifications;
 import com.skulltimer.mocks.PluginMocks;
 import java.time.Duration;
 import java.time.Instant;
@@ -11,7 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,5 +60,24 @@ public class GameTickEventTest extends PluginMocks
 		when(statusManager.doesPlayerCurrentlyHaveSkullIcon()).thenReturn(false);
 		eventBus.post(gameTick);
 		verify(timerManager, times(1)).removeTimer(false);
+	}
+
+	@Test
+	public void doesNotifierCorrectlyStartWhenTimerReachesOneMinute()
+	{
+		when(timerManager.getTimer()).thenReturn(skulledTimer);
+		when(skulledTimer.getRemainingTime()).thenReturn(Duration.ofMinutes(1));
+		when(skulledTimer.getEndTime()).thenReturn(Instant.now().plusSeconds(60));
+		eventBus.post(gameTick);
+		verify(notifier, times(1)).notify(any(), eq(Notifications.EXPIRING_SOON.getMessage()));
+	}
+
+	@Test
+	public void doesNotifierCorrectlyStartWhenTimerReachesZero()
+	{
+		when(timerManager.getTimer()).thenReturn(skulledTimer);
+		when(skulledTimer.getEndTime()).thenReturn(Instant.now().minusSeconds(1));
+		eventBus.post(gameTick);
+		verify(notifier, times(1)).notify(any(), eq(Notifications.EXPIRED.getMessage()));
 	}
 }

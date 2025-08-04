@@ -1,25 +1,18 @@
 package com.skulltimer.managers;
 
-import com.skulltimer.SkulledTimer;
-import com.skulltimer.enums.Notifications;
 import com.skulltimer.mocks.TimerMocks;
 import java.time.Duration;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TimerManagerTests extends TimerMocks
@@ -95,37 +88,4 @@ public class TimerManagerTests extends TimerMocks
 		timerManager.removeTimer(false);
 		verify(config, times(2)).skullDuration(Duration.ZERO);
 	}
-
-	@Test
-	public void timerExpired_withNotificationToggleOn()
-	{
-		when(config.expiredNotification()).thenReturn(true);
-		timerManager.handleNotifications(Notifications.EXPIRED);
-		verify(notifier, times(1)).notify(anyString());
-	}
-
-	@Test
-	public void timerExpired_withNotificationToggleOff()
-	{
-		when(config.expiredNotification()).thenReturn(false);
-		timerManager.handleNotifications(Notifications.EXPIRED);
-		verify(notifier, times(0)).notify(anyString());
-	}
-
-	@Test
-	public void timerExpiresSoon_withNotificationToggleOn()
-	{
-		when(config.expirationSoonNotification()).thenReturn(true);
-		timerManager.handleNotifications(Notifications.EXPIRING_SOON);
-		verify(notifier, times(1)).notify(anyString());
-	}
-
-	@Test
-	public void timerExpiresSoon_withNotificationToggleOff()
-	{
-		when(config.expirationSoonNotification()).thenReturn(false);
-		timerManager.handleNotifications(Notifications.EXPIRING_SOON);
-		verify(notifier, times(0)).notify(anyString());
-	}
-
 }

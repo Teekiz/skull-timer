@@ -27,6 +27,7 @@ package com.skulltimer.managers;
 import com.skulltimer.SkulledTimer;
 import com.skulltimer.enums.SkulledItems;
 import com.skulltimer.enums.TimerDurations;
+import com.skulltimer.enums.equipment.AbyssalBracelets;
 import com.skulltimer.enums.equipment.GenericWeapons;
 import com.skulltimer.enums.equipment.SpellAnimations;
 import com.skulltimer.enums.equipment.WeaponHitDelay;
@@ -43,6 +44,7 @@ import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Player;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.kit.KitType;
 import net.runelite.client.game.ItemManager;
 
@@ -298,5 +300,19 @@ public class EquipmentManager
 	private int getPlayerWeaponID(Player player)
 	{
 		return player.getPlayerComposition().getEquipmentId(KitType.WEAPON);
+	}
+
+	/**
+	 * A
+	 * @param player The local player.
+	 * @return {@code True} if the player is wearing an abyssal bracelet, otherwise returns {@code false}.
+	 */
+	public boolean isPlayerWearingAbyssalBracelet(Player player){
+		if (player == null || player.getPlayerComposition() == null){
+			return false;
+		}
+
+		int wornEquipmentID = player.getPlayerComposition().getEquipmentId(KitType.HANDS);
+		return AbyssalBracelets.getByItemID(wornEquipmentID) != null;
 	}
 }

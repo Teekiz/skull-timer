@@ -22,7 +22,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -442,4 +444,30 @@ public class EquipmentManagerTests extends TimerMocks
 		when(itemComposition.getName()).thenReturn("");
 		assertNull(equipmentManager.getWeaponHitDelay(player));
 	}
+
+	@Test
+	public void playerIsWearingAbyssalBracelet()
+	{
+		when(player.getPlayerComposition()).thenReturn(playerComposition);
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11095);
+		assertTrue(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11097);
+		assertTrue(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11099);
+		assertTrue(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11101);
+		assertTrue(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11103);
+		assertTrue(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+
+		when(playerComposition.getEquipmentId(KitType.HANDS)).thenReturn(11105);
+		assertFalse(equipmentManager.isPlayerWearingAbyssalBracelet(player));
+	}
+
+
 }

@@ -43,6 +43,7 @@ public class LocationManager
 {
 	private final Client client;
 	private final TimerManager timerManager;
+	private final EquipmentManager equipmentManager;
 	@Setter
 	private boolean hasBeenTeleportedIntoAbyss = false;
 	private final static int playerRadius = 13;
@@ -51,11 +52,13 @@ public class LocationManager
 	 * The constructor for a {@link LocationManager} object.
 	 * @param client Runelite's {@link Client} object.
 	 * @param timerManager The manager used to control the creation and deletion of {@link SkulledTimer} objects.
+	 * @param equipmentManager The manager used to manage events related to the players equipment.
 	 */
-	public LocationManager(Client client, TimerManager timerManager)
+	public LocationManager(Client client, TimerManager timerManager, EquipmentManager equipmentManager)
 	{
 		this.client = client;
 		this.timerManager = timerManager;
+		this.equipmentManager = equipmentManager;
 	}
 
 	/**
@@ -67,6 +70,12 @@ public class LocationManager
 			client.getLocalPlayer().getSkullIcon() != SkullIcon.NONE)
 		{
 				hasBeenTeleportedIntoAbyss = false;
+
+				if (equipmentManager.isPlayerWearingAbyssalBracelet(client.getLocalPlayer())){
+					log.debug("Player has been teleported into the abyss and is wearing abyssal bracelet. Not restarting timer.");
+					return true;
+				}
+
 				log.debug("Player has been teleported into the abyss. Starting timer.");
 				timerManager.addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 				return true;

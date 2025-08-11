@@ -100,8 +100,8 @@ public class SkullTimerPlugin extends Plugin
 		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
-		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
+		locationManager = new LocationManager(client, timerManager, equipmentManager);
 		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);
 
 		gameTickCounter = 0;
@@ -129,8 +129,8 @@ public class SkullTimerPlugin extends Plugin
 		// Check if the player is logged in
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			// If the skull duration is set, there is no active timer, and the player is not in the Abyss
-			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
+			// If the player has not been teleported into the abyss, the skull duration is set, there is no active timer.
+			if (!locationManager.isInAbyss() && config.skullDuration() != null && timerManager.getTimer() == null)
 			{
 				// Add timer with the SkullDuration from the config
 				timerManager.addTimer(config.skullDuration());
@@ -196,13 +196,14 @@ public class SkullTimerPlugin extends Plugin
 			return;
 		}
 
+		//todo - handle it so that duplicate messages aren't sent
 		if (skulledTimer.getRemainingTime().getSeconds() == 60)
 		{
 			notifier.notify(config.expirationSoonNotification(), Notifications.EXPIRING_SOON.getMessage());
 		}
 
 		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime()) || skulledTimer.getRemainingTime().getSeconds() == 0)
+		if (Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime()))
 		{
 			notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
 			log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");

@@ -3,8 +3,10 @@ package com.skulltimer.managers;
 import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.TimerDurations;
 import net.runelite.api.Player;
+import net.runelite.api.PlayerComposition;
 import net.runelite.api.SkullIcon;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.kit.KitType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +35,7 @@ public class LocationManagerTests extends TimerMocks
 	WorldPoint worldPointA;
 	@Mock
 	WorldPoint worldPointB;
+
 	@BeforeEach
 	public void startUp()
 	{
@@ -73,6 +76,17 @@ public class LocationManagerTests extends TimerMocks
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(3015, 4831, 0));
 		lenient().when(player.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		locationManager.isInAbyss();
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+	}
+
+	@Test
+	public void inAbyss_WearingAbyssalBracelet()
+	{
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(3015, 4831, 0));
+		when(equipmentManager.isPlayerWearingAbyssalBracelet(player)).thenReturn(true);
+		locationManager.setHasBeenTeleportedIntoAbyss(true);
+
+		assertTrue(locationManager.isInAbyss());
 		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 

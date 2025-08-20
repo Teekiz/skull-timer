@@ -93,6 +93,8 @@ public class SkullTimerPlugin extends Plugin
 
 	private int gameTickCounter;
 	private boolean hasHitSplatOccurred;
+	private boolean hasExpiredSoonNotificationBeenSent;
+	private boolean hasExpiredNotificationBeenSent;
 
 	@Override
 	protected void startUp()
@@ -106,6 +108,9 @@ public class SkullTimerPlugin extends Plugin
 
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
+
+		hasExpiredSoonNotificationBeenSent = false;
+		hasExpiredNotificationBeenSent = false;
 
 		// Update the current equipment when the plugin starts
 		clientThread.invoke(() -> equipmentManager.updateCurrentEquipment());
@@ -196,20 +201,31 @@ public class SkullTimerPlugin extends Plugin
 			return;
 		}
 
-		//todo - handle it so that duplicate messages aren't sent
 		if (skulledTimer.getRemainingTime().getSeconds() == 60)
 		{
-			notifier.notify(config.expirationSoonNotification(), Notifications.EXPIRING_SOON.getMessage());
+			if (hasExpiredSoonNotificationBeenSent){
+				log.debug("Not sending duplicate expires soon notification.");
+				hasExpiredSoonNotificationBeenSent = false;
+			} else {
+				hasExpiredSoonNotificationBeenSent = true;
+				notifier.notify(config.expirationSoonNotification(), Notifications.EXPIRING_SOON.getMessage());
+			}
 		}
 
 		//if the player does not have a skull icon or the timer has expired
 		if (Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime()))
 		{
 			notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
+			hasExpiredNotificationBeenSent = true;
 			log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
 		}
 		else if (!statusManager.doesPlayerCurrentlyHaveSkullIcon())
 		{
+			//todo - manage duplicate expired notifications
+			if (hasExpiredNotificationBeenSent) {
+				notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
+				hasExpiredNotificationBeenSent = false;
+			}
 			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
 		}
 		else

@@ -3,7 +3,7 @@ plugins {
 }
 
 repositories {
-	mavenLocal()
+    mavenLocal()
 	maven {
 		url = 'https://repo.runelite.net'
 	}
@@ -27,7 +27,7 @@ dependencies {
 }
 
 group = 'com.skulltimer'
-version = '2.0'
+version = '2.1'
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'

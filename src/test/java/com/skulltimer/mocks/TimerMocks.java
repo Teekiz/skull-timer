@@ -6,6 +6,7 @@ import com.skulltimer.managers.EquipmentManager;
 import com.skulltimer.managers.StatusManager;
 import com.skulltimer.managers.TimerManager;
 import net.runelite.api.Client;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
@@ -31,4 +32,6 @@ public class TimerMocks
 	protected StatusManager statusManager;
 	@Mock
 	protected EquipmentManager equipmentManager;
+	@Mock
+	protected Notifier notifier;
 }

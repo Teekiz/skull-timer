@@ -33,6 +33,7 @@ public class LocationManagerTests extends TimerMocks
 	WorldPoint worldPointA;
 	@Mock
 	WorldPoint worldPointB;
+
 	@BeforeEach
 	public void startUp()
 	{
@@ -73,6 +74,17 @@ public class LocationManagerTests extends TimerMocks
 		when(player.getWorldLocation()).thenReturn(new WorldPoint(3015, 4831, 0));
 		lenient().when(player.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		locationManager.isInAbyss();
+		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
+	}
+
+	@Test
+	public void inAbyss_WearingAbyssalBracelet()
+	{
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(3015, 4831, 0));
+		when(equipmentManager.isPlayerWearingAbyssalBracelet(player)).thenReturn(true);
+		locationManager.setHasBeenTeleportedIntoAbyss(true);
+
+		assertTrue(locationManager.isInAbyss());
 		verify(timerManager, times(0)).addTimer(TimerDurations.ABYSS_DURATION.getDuration());
 	}
 

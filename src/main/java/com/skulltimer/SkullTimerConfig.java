@@ -30,6 +30,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Notification;
 
 @ConfigGroup("Skull Timer")
 public interface SkullTimerConfig extends Config
@@ -86,4 +87,27 @@ public interface SkullTimerConfig extends Config
 		section = experimental
 	)
 	default boolean pvpToggle() {return true;}
+
+	@ConfigSection(
+		position = 2,
+		name = "Notification Settings",
+		description = "Sets when you should be notified upon certain conditions being met."
+	)
+	String notifications = "notifications";
+
+	@ConfigItem(
+		keyName = "expirationSoonNotification",
+		name="Expires Soon Notification",
+		description = "Toggles whether you should receive a notification when the skull timer duration reaches one minute.",
+		section = notifications
+	)
+	default Notification expirationSoonNotification() {return Notification.OFF;}
+
+	@ConfigItem(
+		keyName = "expiredNotification",
+		name="Expired Notification",
+		description = "Toggles whether you should receive a notification when the skull timer expires.",
+		section = notifications
+	)
+	default Notification expiredNotification() {return Notification.OFF;}
 }

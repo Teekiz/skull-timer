@@ -44,8 +44,6 @@ public class GameStateChangedEventTest extends PluginMocks
 	@Test
 	public void loggingIn_WithTimerSavedButInAbyss()
 	{
-		when(config.skullDuration()).thenReturn(Duration.ofMinutes(20));
-		when(timerManager.getTimer()).thenReturn(null);
 		when(locationManager.isInAbyss()).thenReturn(true);
 
 		when(gameStateChanged.getGameState()).thenReturn(GameState.LOGGED_IN);

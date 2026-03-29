@@ -26,6 +26,7 @@ package com.skulltimer;
 import com.google.inject.Provides;
 import com.skulltimer.data.CombatInteraction;
 import com.skulltimer.enums.CombatStatus;
+import com.skulltimer.enums.Notifications;
 import com.skulltimer.enums.TimerDurations;
 import com.skulltimer.enums.equipment.AttackType;
 import com.skulltimer.enums.equipment.ExcludedAnimations;
@@ -54,6 +55,7 @@ import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.events.PlayerDespawned;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -80,6 +82,8 @@ public class SkullTimerPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 	@Inject
 	private ItemManager itemManager;
+	@Inject
+	private Notifier notifier;
 
 	private StatusManager statusManager;
 	private TimerManager timerManager;
@@ -89,6 +93,8 @@ public class SkullTimerPlugin extends Plugin
 
 	private int gameTickCounter;
 	private boolean hasHitSplatOccurred;
+	private boolean hasExpiredSoonNotificationBeenSent;
+	private boolean hasExpiredNotificationBeenSent;
 
 	@Override
 	protected void startUp()
@@ -96,12 +102,15 @@ public class SkullTimerPlugin extends Plugin
 		// Initialize the managers and set up the initial state of the plugin
 		statusManager = new StatusManager(client);
 		timerManager = new TimerManager(this, config, infoBoxManager, itemManager, statusManager);
-		locationManager = new LocationManager(client, timerManager);
 		equipmentManager = new EquipmentManager(client, timerManager, itemManager);
+		locationManager = new LocationManager(client, timerManager, equipmentManager);
 		combatManager = new CombatManager(client, clientThread, config, timerManager, statusManager, equipmentManager);
 
 		gameTickCounter = 0;
 		hasHitSplatOccurred = false;
+
+		hasExpiredSoonNotificationBeenSent = false;
+		hasExpiredNotificationBeenSent = false;
 
 		// Update the current equipment when the plugin starts
 		clientThread.invoke(() -> equipmentManager.updateCurrentEquipment());
@@ -125,8 +134,8 @@ public class SkullTimerPlugin extends Plugin
 		// Check if the player is logged in
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			// If the skull duration is set, there is no active timer, and the player is not in the Abyss
-			if (config.skullDuration() != null && timerManager.getTimer() == null && !locationManager.isInAbyss())
+			// If the player has not been teleported into the abyss, the skull duration is set, there is no active timer.
+			if (!locationManager.isInAbyss() && config.skullDuration() != null && timerManager.getTimer() == null)
 			{
 				// Add timer with the SkullDuration from the config
 				timerManager.addTimer(config.skullDuration());
@@ -186,21 +195,42 @@ public class SkullTimerPlugin extends Plugin
 		gameTickCounter++;
 
 		SkulledTimer skulledTimer = timerManager.getTimer();
-		boolean playerHasNoSkullIcon = client.getLocalPlayer().getSkullIcon() == SkullIcon.NONE;
 
 		if (skulledTimer == null)
 		{
 			return;
 		}
 
-		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime()))
+		if (skulledTimer.getRemainingTime().getSeconds() == 60)
 		{
-			log.debug("Removing timer because it has expired. {}", playerHasNoSkullIcon  ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+			if (hasExpiredSoonNotificationBeenSent){
+				log.debug("Not sending duplicate expires soon notification.");
+				hasExpiredSoonNotificationBeenSent = false;
+			} else {
+				hasExpiredSoonNotificationBeenSent = true;
+				notifier.notify(config.expirationSoonNotification(), Notifications.EXPIRING_SOON.getMessage());
+			}
 		}
-		else if (playerHasNoSkullIcon)
+
+		boolean hasTimerReachedEndTime = Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime());
+
+		//if the player does not have a skull icon or the timer has expired
+		if (hasTimerReachedEndTime || !statusManager.doesPlayerCurrentlyHaveSkullIcon())
 		{
-			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
+			//timer notifications - prevents duplicate notifications
+			if (hasExpiredNotificationBeenSent){
+				hasExpiredNotificationBeenSent = false;
+			} else {
+				notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
+				hasExpiredNotificationBeenSent = true;
+			}
+
+			//log messages
+			if (hasTimerReachedEndTime) {
+				log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+			} else {
+				log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
+			}
 		}
 		else
 		{

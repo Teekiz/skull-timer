@@ -47,6 +47,13 @@ This will change the colour of the text on the timer. When the timer has 30 seco
 If enabled, a timer will start whenever you engage in a PvP encounter and receive a skull icon. Note: This timer may not be 100% accurate in all scenarios.
 </details>
 
+<details>
+<summary>Notifications:</summary>
+
+![image](https://github.com/Teekiz/skull-timer/blob/master/readmeimages/settings3.PNG) <br>
+When toggled, a notification will be sent when the player reaches 1 minute left and/or the timer expires.
+</details>
+
 ## Feedback
 
 If you have encountered any bugs, please create an issue [here](https://github.com/Teekiz/skull-timer/issues/new) with all relevant details. Any feedback or feature requests are also welcome!
@@ -57,6 +64,13 @@ If you have encountered any bugs, please create an issue [here](https://github.c
 - [Old School Runescape Wiki](https://oldschool.runescape.wiki/) - [Source](https://oldschool.runescape.wiki/w/File:Skull_(status)_icon.png) of the image used for the plugin's icon and a useful source of information which aided the development of this plugin (primarily [Skull (status)](https://oldschool.runescape.wiki/w/Skull_(status)) and [weapons](https://oldschool.runescape.wiki/w/Weapons) pages).
 
 ## Changelog
+
+<details>
+<summary>Version 2.1 (29/03/2026):</summary>
+Added notification options for timer expiration.<br>
+Fixed issue where entering the abyss would not increase timer.
+</details> 
+
 <details>
 <summary>Version 2.0 (17/02/2025):</summary> 
 Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>

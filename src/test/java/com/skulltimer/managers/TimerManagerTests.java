@@ -19,7 +19,6 @@ public class TimerManagerTests extends TimerMocks
 {
 	@InjectMocks
 	TimerManager timerManager;
-
 	@Test
 	public void startStandardTimer()
 	{

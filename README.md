@@ -68,6 +68,7 @@ If you have encountered any bugs, please create an issue [here](https://github.c
 <details>
 <summary>Version 2.1 (29/03/2026):</summary>
 Added notification options for timer expiration.<br>
+Added check to see if player is wearing abyssal bracelet.<br>
 Fixed issue where entering the abyss would not increase timer.
 </details> 
 

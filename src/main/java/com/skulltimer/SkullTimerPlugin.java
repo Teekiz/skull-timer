@@ -212,21 +212,25 @@ public class SkullTimerPlugin extends Plugin
 			}
 		}
 
+		boolean hasTimerReachedEndTime = Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime());
+
 		//if the player does not have a skull icon or the timer has expired
-		if (Instant.now().isAfter(skulledTimer.getEndTime()) || Instant.now().equals(skulledTimer.getEndTime()))
+		if (hasTimerReachedEndTime || !statusManager.doesPlayerCurrentlyHaveSkullIcon())
 		{
-			notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
-			hasExpiredNotificationBeenSent = true;
-			log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
-		}
-		else if (!statusManager.doesPlayerCurrentlyHaveSkullIcon())
-		{
-			//todo - manage duplicate expired notifications
-			if (hasExpiredNotificationBeenSent) {
-				notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
+			//timer notifications - prevents duplicate notifications
+			if (hasExpiredNotificationBeenSent){
 				hasExpiredNotificationBeenSent = false;
+			} else {
+				notifier.notify(config.expiredNotification(), Notifications.EXPIRED.getMessage());
+				hasExpiredNotificationBeenSent = true;
 			}
-			log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
+
+			//log messages
+			if (hasTimerReachedEndTime) {
+				log.debug("Removing timer because it has expired. {}", !statusManager.doesPlayerCurrentlyHaveSkullIcon() ? "Player no longer has a skull icon." : "Player still has a skull icon.");
+			} else {
+				log.debug("Removing timer because player no longer has a skull icon. Time remaining: {} seconds.", skulledTimer.getRemainingTime().toSeconds());
+			}
 		}
 		else
 		{

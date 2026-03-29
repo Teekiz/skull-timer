@@ -104,19 +104,16 @@ public class GameTickEventTest extends PluginMocks
 
 		//timer expires first
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().minusSeconds(1));
-		when(client.getLocalPlayer()).thenReturn(localPlayer);
 
 		eventBus.post(gameTick);
 		verify(notifier, times(1)).notify(any(), eq(Notifications.EXPIRED.getMessage()));
 
 		//skull expires - shouldn't send duplicate notification (plus seconds shouldn't occur but just to bypass the check)
 		when(skulledTimer.getEndTime()).thenReturn(Instant.now().plusSeconds(2));
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		eventBus.post(gameTick);
 		verify(notifier, times(1)).notify(any(), eq(Notifications.EXPIRED.getMessage()));
 
 		//new expiration - should send new notification
-		when(localPlayer.getSkullIcon()).thenReturn(SkullIcon.NONE);
 		eventBus.post(gameTick);
 		verify(notifier, times(2)).notify(any(), eq(Notifications.EXPIRED.getMessage()));
 

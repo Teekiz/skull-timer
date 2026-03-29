@@ -66,8 +66,8 @@ If you have encountered any bugs, please create an issue [here](https://github.c
 ## Changelog
 
 <details>
-<summary>Version 2.1 (11/08/2025):</summary>
-Added notification options for timer expiration.
+<summary>Version 2.1 (29/03/2026):</summary>
+Added notification options for timer expiration.<br>
 Fixed issue where entering the abyss would not increase timer.
 </details> 
 

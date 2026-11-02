@@ -33,7 +33,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ItemID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.Timer;
 

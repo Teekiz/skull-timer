@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.InventoryID;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Player;
@@ -85,7 +85,7 @@ public class EquipmentManager
 	 * @return The {@link ItemContainer} for the {@link Client}'s equipment tab.
 	 */
 	public ItemContainer getEquipment(){
-		return client.getItemContainer(InventoryID.EQUIPMENT);
+		return client.getItemContainer(InventoryID.WORN);
 	}
 
 	/**

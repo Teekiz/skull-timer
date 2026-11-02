@@ -41,7 +41,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import com.skulltimer.SkulledTimer;
 import net.runelite.api.Client;
-import net.runelite.api.GraphicID;
+import net.runelite.api.gameval.SpotanimID;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
 import net.runelite.client.callback.ClientThread;
@@ -286,7 +286,7 @@ public class CombatManager
 			for (ExpectedHit hit : tick.getValue()){
 				String playerName = hit.getPlayerName();
 				int expectedHit = tick.getKey();
-				boolean isSplashHit = hit.doesApplySplash() && client.getLocalPlayer().hasSpotAnim(GraphicID.SPLASH);
+				boolean isSplashHit = hit.doesApplySplash() && client.getLocalPlayer().hasSpotAnim(SpotanimID.FAILEDSPELL_IMPACT);
 
 				//If the hit occurred either now or one tick late (because of the processing order delay), the attack will count as an attack
 				if (didHitSplatOccur) {

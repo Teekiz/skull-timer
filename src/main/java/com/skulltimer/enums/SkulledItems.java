@@ -26,7 +26,7 @@ package com.skulltimer.enums;
 
 import lombok.Getter;
 import net.runelite.api.EquipmentInventorySlot;
-import net.runelite.api.ItemID;
+import net.runelite.api.gameval.ItemID;
 
 /**
  * An enumeration of items that provide skull statues when equipped.
@@ -34,7 +34,7 @@ import net.runelite.api.ItemID;
 @Getter
 public enum SkulledItems
 {
-	AMULET_OF_AVARICE(ItemID.AMULET_OF_AVARICE, EquipmentInventorySlot.AMULET.getSlotIdx(), true),
+	AMULET_OF_AVARICE(ItemID.WILD_CAVE_AMULET, EquipmentInventorySlot.AMULET.getSlotIdx(), true),
 	CAPE_OF_SKULLS(ItemID.CAPE_OF_SKULLS, EquipmentInventorySlot.CAPE.getSlotIdx(), false);
 
 	private final int itemID;

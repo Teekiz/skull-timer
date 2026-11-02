@@ -10,7 +10,7 @@ import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.Item;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.Player;
 import net.runelite.api.PlayerComposition;
 import net.runelite.api.kit.KitType;
@@ -358,10 +358,10 @@ public class EquipmentManagerTests extends TimerMocks
 		when(equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx())).thenReturn(amuletMockTwo);
 		when(equipment.getItem(EquipmentInventorySlot.CAPE.getSlotIdx())).thenReturn(capeMockTwo);
 
-		when(amuletMock.getId()).thenReturn(ItemID.AMULET_OF_AVARICE);
+		when(amuletMock.getId()).thenReturn(ItemID.WILD_CAVE_AMULET);
 		when(capeMock.getId()).thenReturn(ItemID.CAPE_OF_SKULLS);
 		when(amuletMockTwo.getId()).thenReturn(ItemID.AMULET_OF_GLORY);
-		when(capeMockTwo.getId()).thenReturn(ItemID.IMBUED_ZAMORAK_CAPE);
+		when(capeMockTwo.getId()).thenReturn(ItemID.MA2_ZAMORAK_CAPE);
 		equipmentManager.updateCurrentEquipment();
 
 		//swapping cape first - should start timer

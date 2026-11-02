@@ -66,36 +66,49 @@ If you have encountered any bugs, please create an issue [here](https://github.c
 ## Changelog
 
 <details>
-<summary>Version 2.1 (29/03/2026):</summary>
-Added notification options for timer expiration.<br>
-Added check to see if player is wearing abyssal bracelet.<br>
-Fixed issue where entering the abyss would not increase timer.
+<summary>Version 2.1.1 (02/11/2026):</summary>
+ 
+Thanks to [juusokarjanlahti](https://github.com/juusokarjanlahti) for the following:
+- Added AGENTS.md for agents guidance.
+- Updated depricated Runelite ID references to use net.runelite.api.gameval constants.
+- Updated gradle to use skull-timer in place of example project name and added run task to build.gradle.
 </details> 
 
 <details>
-<summary>Version 2.0 (17/02/2025):</summary> 
-Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.<br>
-Added timer for other skulled status sources, including: <br>
-- Attacking another player unprovoked. <br>
-- Entering the Abyss without an Abyssal bracelet. <br>
-- Equipping or unequipping items that provide a skull icon such as the Amulet of Avarice and the Cape of Skulls. <br>
-Added new configuration option: <br>
+<summary>Version 2.1 (29/03/2026):</summary>
+ 
+- Added notification options for timer expiration.
+- Added check to see if player is wearing abyssal bracelet.<br>
+- Fixed issue where entering the abyss would not increase timer.
+</details> 
+
+<details>
+<summary>Version 2.0 (17/02/2025):</summary>
+ 
+- Renamed plugin from 'Emblem Trader Skull Timer' to 'Skulled Timer'.
+- Added timer for other skulled status sources, including:
+  - Attacking another player unprovoked.
+  - Entering the Abyss without an Abyssal bracelet.
+  - Equipping or unequipping items that provide a skull icon such as the Amulet of Avarice and the Cape of Skulls.
+- Added new configuration option:
 - Enable PvP timer.
 </details>
 
 <details>
 <summary>Version 1.1 (09/10/2024):</summary>
-Compatibility update. <br>
-Minor code and logging changes.
+ 
+- Compatibility update.
+- Minor code and logging changes.
 </details> 
 
 <details>
 <summary>Version 1.0 (25/07/2023):</summary>
-Plugin release. <br>
-Added skull timer for when the player interacts with the emblem trader and receives a skull icon. <br>
-Added new configuration options: <br>
-- Text colour. <br>
-- Warning text colour.
+ 
+Plugin release.
+- Added skull timer for when the player interacts with the emblem trader and receives a skull icon. <br>
+- Added new configuration options: <br>
+  - Text colour. <br>
+  - Warning text colour.
 </details>
 
 

@@ -28,7 +28,7 @@ dependencies {
 }
 
 group = 'com.skulltimer'
-version = '2.1'
+version = '2.1.1'
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'

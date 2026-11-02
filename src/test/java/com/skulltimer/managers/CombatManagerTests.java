@@ -8,7 +8,7 @@ import com.skulltimer.mocks.TimerMocks;
 import com.skulltimer.enums.CombatStatus;
 import com.skulltimer.enums.TimerDurations;
 import java.time.Duration;
-import net.runelite.api.GraphicID;
+import net.runelite.api.gameval.SpotanimID;
 import net.runelite.api.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -256,7 +256,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MAGIC);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(false);
+		when(localPlayer.hasSpotAnim(SpotanimID.FAILEDSPELL_IMPACT)).thenReturn(false);
 
 		combatManager.onTickOfExpectedHit(3, false);
 
@@ -270,7 +270,7 @@ public class CombatManagerTests extends TimerMocks
 		combatManager.onPlayerInteractionChange(player.getName(), true);
 		combatManager.addExpectedHitTick(player.getName(), 3, AttackType.MAGIC);
 		when(client.getLocalPlayer()).thenReturn(localPlayer);
-		when(localPlayer.hasSpotAnim(GraphicID.SPLASH)).thenReturn(true);
+		when(localPlayer.hasSpotAnim(SpotanimID.FAILEDSPELL_IMPACT)).thenReturn(true);
 
 		combatManager.onTickOfExpectedHit(3, false);
 

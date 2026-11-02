@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.SkullIcon;
-import net.runelite.api.Varbits;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.coords.WorldPoint;
 
 /**
@@ -184,6 +184,6 @@ public class LocationManager
 	 * @return {@code true} if the player is in the wilderness, {@code false} if not.
 	 */
 	public boolean isInWilderness(){
-		return client.getVarbitValue(Varbits.IN_WILDERNESS) == 1;
+		return client.getVarbitValue(VarbitID.INSIDE_WILDERNESS) == 1;
 	}
 }

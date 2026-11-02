@@ -27,7 +27,7 @@ package com.skulltimer.enums.equipment;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
-import net.runelite.api.AnimationID;
+import net.runelite.api.gameval.AnimationID;
 
 /**
  * A list of animations that should not trigger an animation check.
@@ -38,28 +38,28 @@ import net.runelite.api.AnimationID;
 @Getter
 public enum ExcludedAnimations
 {
-	IDLE(AnimationID.IDLE),
-	UNARMED(424),
-	DEFENDER(4177),
-	SHIELD(1156),
-	BULWARK(7512),
-	_1H_SWORD(388),
-	_2H_SWORD(7056),
-	STAFF(420),
-	HALBERD(430),
-	FLAIL(8017),
-	CHINCHOMPA(3176),
-	WAND(415),
-	WHIP(1659),
-	TOOLS_PICKAXE_AXE(397),
-	DAGGER(378),
-	BLUDGEON(1666),
-	CHAINMACE(7200),
-	MACE(403),
-	BATTLEAXE(397),
-	BONEMACE(2063),
-	ABBYSSAL_DAGGER(3295),
-	DRAGON_2H_SWORD(410);
+	IDLE(-1),
+	UNARMED(AnimationID.HUMAN_UNARMEDBLOCK),
+	DEFENDER(AnimationID.WARGUILD_PARRY_DEFEND),
+	SHIELD(AnimationID.HUMAN_SHIELD_DEFENCE),
+	BULWARK(AnimationID.HUMAN_DINHS_BULWARK_BLOCK),
+	_1H_SWORD(AnimationID.HUMAN_SWORD_DEF),
+	_2H_SWORD(AnimationID.DH_SWORD_UPDATE_DEFEND),
+	STAFF(AnimationID.HUMAN_STAFFORB_BLOCK),
+	HALBERD(AnimationID.HUMAN_SPEAR_BLOCK),
+	FLAIL(AnimationID.IVANDIS_FLAIL_DEFEND),
+	CHINCHOMPA(AnimationID.HUMAN_CHINCHOMPA_DEFEND),
+	WAND(AnimationID.HUMAN_STAFF_BLOCK),
+	WHIP(AnimationID.SLAYER_ABYSSAL_WHIP_DEFEND),
+	TOOLS_PICKAXE_AXE(AnimationID.HUMAN_AXE_BLOCK),
+	DAGGER(AnimationID.HUMAN_DDAGGER_BLOCK),
+	BLUDGEON(AnimationID.SLAYER_GRANITE_MAUL_DEFEND),
+	CHAINMACE(AnimationID.WILD_CAVE_CHAINMACE_DEFEND),
+	MACE(AnimationID.HUMAN_BLUNT_BLOCK),
+	BATTLEAXE(AnimationID.HUMAN_AXE_BLOCK),
+	BONEMACE(AnimationID.BARROW_GUTHAN_DEFEND),
+	ABBYSSAL_DAGGER(AnimationID.ABYSSAL_DAGGER_BLOCK),
+	DRAGON_2H_SWORD(AnimationID.HUMAN_DHSWORD_BLOCK);
 
 
 	private static final Map<Integer, ExcludedAnimations> EXCLUDED_MAP = new HashMap<>();
